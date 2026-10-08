@@ -1,0 +1,91 @@
+@startuml Hotel Points System - Complete Use Case Diagram (v1.1)
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+
+actor Guest as Guest
+actor "System / Admin" as Admin
+
+rectangle "Hotel Points System" {
+
+  ' ========== Shared / Common Use Cases ==========
+  usecase "Check Account Status\n(not Inactive / Forbidden)" as UC_Common1
+  usecase "Calculate Points based on\nIdentity & Membership Tier" as UC_Common2
+  usecase "Deduct Points / Voucher\nfrom User Account" as UC_Common3
+  usecase "View Points Balance &\nMembership Level" as UC_Common4
+
+  ' ========== UC1: Point Issuance ==========
+  usecase "Place Order and\nMake Payment" as UC1
+  usecase "Issue Points to\nUser Account" as UC1_Issue
+
+  ' ========== UC2: Point Usage for Shopping ==========
+  usecase "Select Products in\nInternal Mall" as UC2
+  usecase "Pay with Points\n(Mall)" as UC2_Pay
+  usecase "Pay with Points + Cash\n(Mall)" as UC2_Combo
+
+  ' ========== UC3: Redeem Points for Room Booking ==========
+  usecase "Select Room and\nBook" as UC3
+  usecase "Pay with Points\n(Room Booking)" as UC3_Pay
+  usecase "Pay with Points + Cash\n(Room Booking)" as UC3_Combo
+
+  ' ========== UC4: Points Clawback ==========
+  usecase "Cancel Order or\nRequest Refund" as UC4
+  usecase "Clawback Issued Points\n(may result in negative balance)" as UC4_Clawback
+
+  ' ========== UC5: Membership Tier ==========
+  usecase "Recalculate Total\nConsumption" as UC5_Calc
+  usecase "Upgrade Membership Tier\n(L1→L5 by consumption)" as UC5_Up
+  usecase "Downgrade Membership Tier\n(by inactivity)" as UC5_Down
+  usecase "Set Account to Inactive\n(12 months no login)" as UC5_Inactive
+}
+
+' ========== Guest main flows ==========
+Guest --> UC1
+Guest --> UC2
+Guest --> UC3
+Guest --> UC4
+Guest --> UC_Common4
+
+Admin --> UC4
+Admin --> UC5_Calc
+
+' ========== Common precondition ==========
+UC1 ..> UC_Common1 : <<include>>
+UC2 ..> UC_Common1 : <<include>>
+UC3 ..> UC_Common1 : <<include>>
+UC4 ..> UC_Common1 : <<include>>
+UC5_Up ..> UC_Common1 : <<include>>
+UC5_Down ..> UC_Common1 : <<include>>
+
+' ========== UC1: Point Issuance ==========
+UC1 --> UC1_Issue
+UC1_Issue ..> UC_Common2 : <<include>>
+UC1_Issue --> UC_Common4
+
+' ========== UC2: Mall Shopping ==========
+UC2 --> UC2_Pay
+UC2_Pay --> UC_Common3
+UC2_Pay ..> UC2_Combo : <<extend>>\nwhen points insufficient
+UC2_Combo --> UC_Common3
+
+' ========== UC3: Room Booking ==========
+UC3 --> UC3_Pay
+UC3_Pay --> UC_Common3
+UC3_Pay ..> UC3_Combo : <<extend>>\nwhen points insufficient
+UC3_Combo --> UC_Common3
+
+' ========== UC4: Clawback ==========
+UC4 --> UC4_Clawback
+UC4_Clawback --> UC_Common3
+UC4_Clawback --> UC_Common4
+
+' ========== UC5: Membership ==========
+UC5_Calc --> UC5_Up
+UC5_Calc --> UC5_Down
+UC5_Down --> UC5_Inactive
+UC5_Up --> UC_Common4
+UC5_Down --> UC_Common4
+UC5_Inactive --> UC_Common4
+
+@enduml
