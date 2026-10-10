@@ -17,28 +17,48 @@ Manager
 
 
 
-Guest
+User
+      UID
       name
       password
-      role: Guest/Manger
       gender
+      role: Guest/Manger
       registerTime
       level: 1/2/3/4/5  10 
       currentPoint
+      
 
-PointHistory
+PointsTransaction
+      UID
+      PTID
       number:  正数表示增加积分  负数表示使用积分
-      updateTime:
-      酒店ID
-      关联订单ID
+      updateTime: 更新时间
+      酒店ID: 外部系统传入
+      关联订单ID: 外部系统传入
 
 Product
+      PID
       名称
       图片URL
       总需积分 5000
       最低需要积分   2000 + 折合成3000积分的钱
       总库存数量
       目前剩余数量
+
+PointsRule
+      PRID
+      type:类型 1: 针对用户等级  2:针对特定的时间段 
+      threshold: 门槛
+      PointsRatio: 积分比率(即多少钱折合成都少的积分)
+      description
+
+PaymentMethod
+      PMID
+      type: 1:纯积分 2: 积分+钱 3: 积分+抵扣券
+      description
+
+
+
 
 
       
