@@ -1,0 +1,45 @@
+
+
+
+
+积分规则
+      使用配置文件即可
+      
+      
+Guest 
+      登录 + 个人账号信息
+      查询积分明细
+      积分商城兑换商品   Key
+Manager
+      修改积分规则
+      手动给用户添加积分  Key
+      积分商场 增删改查商品  
+
+
+
+Guest
+      name
+      password
+      role: Guest/Manger
+      gender
+      registerTime
+      level: 1/2/3/4/5  10 
+      currentPoint
+
+PointHistory
+      number:  正数表示增加积分  负数表示使用积分
+      updateTime:
+      酒店ID
+      关联订单ID
+
+Product
+      名称
+      图片URL
+      总需积分 5000
+      最低需要积分   2000 + 折合成3000积分的钱
+      总库存数量
+      目前剩余数量
+
+
+      
+
