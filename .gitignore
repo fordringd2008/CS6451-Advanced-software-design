@@ -1,0 +1,10 @@
+# IDE
+.joycode/
+
+# Excel temp lock files
+~$*.xlsx
+~$*.docx
+
+# Python temp scripts
+_dump_*.py
+_uc_dump*.txt
