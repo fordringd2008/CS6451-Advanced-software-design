@@ -38,11 +38,6 @@
   .method { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; font-size: 13px; }
   .method label { display: flex; align-items: center; gap: 8px; color: #5A4632; cursor: pointer; }
   .method input[type="radio"] { accent-color: #C08B5C; }
-  .tag {
-    font-size: 11px; padding: 2px 10px; border-radius: 10px;
-    background: #F3E8D7; color: #8A6A3F;
-  }
-  .tag.unavailable { background: #F5E0D8; color: #B0614A; }
 
   /* Buttons */
   .btn-row { display: flex; gap: 12px; padding: 18px; }
@@ -73,6 +68,7 @@
       <div class="info">
         <div class="name">Hotel Custom LEGO Keychain</div>
         <div class="price">800 pts</div>
+        <div class="price" style="font-size:11px;color:#A98B6E">Min: 400 pts</div>
       </div>
     </div>
   </div>
@@ -81,7 +77,6 @@
   <div class="section">
     <h3>Payment Info</h3>
     <div class="pay-row"><span class="label">Total Points Required</span><span class="value">800 pts</span></div>
-    <div class="pay-row"><span class="label">Min Points Required</span><span class="value">400 pts</span></div>
     <div class="pay-row"><span class="label">Available Balance</span><span class="value">2,450 pts</span></div>
   </div>
 
@@ -90,15 +85,12 @@
     <h3>Choose Payment Method</h3>
     <div class="method">
       <label><input type="radio" name="pay" checked> Points Only (Type 1)</label>
-      <span class="tag">Available</span>
     </div>
     <div class="method">
       <label><input type="radio" name="pay"> Points + Cash (Type 2)</label>
-      <span class="tag">Available</span>
     </div>
     <div class="method">
       <label><input type="radio" name="pay"> Points + Voucher (Type 3)</label>
-      <span class="tag">Available</span>
     </div>
   </div>
 
