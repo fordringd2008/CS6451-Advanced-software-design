@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Hotel Points Admin - Prototype</title>
+<style>
+  body { font-family: Georgia, serif; background: #FAF5EE; color: #5A4632; margin: 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; background: #FFFBF5; border-bottom: 1px solid #EAD9C2; padding: 12px 20px; }
+  .topbar .title { font-size: 17px; font-weight: bold; }
+  .topbar .user { font-size: 13px; color: #96785A; }
+  .layout { display: flex; min-height: calc(100vh - 52px); }
+  .sidebar { width: 150px; background: #FFFBF5; border-right: 1px solid #EAD9C2; padding: 14px 0; flex-shrink: 0; }
+  .nav-item { display: block; padding: 13px 18px; font-size: 14px; color: #96785A; cursor: pointer; border-left: 3px solid transparent; text-decoration: none; }
+  .nav-item:hover { background: #FAF5EE; }
+  .nav-item.active { color: #C08B5C; font-weight: bold; background: #FAF5EE; border-left-color: #C08B5C; }
+  .content { flex: 1; padding: 20px 24px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .panel-header h2 { font-size: 16px; margin: 0; }
+  table { width: 100%; border-collapse: collapse; background: #FFFBF5; border: 1px solid #EAD9C2; border-radius: 10px; overflow: hidden; }
+  th { background: #F5EBDD; color: #96785A; font-size: 12px; padding: 10px 12px; text-align: left; }
+  td { padding: 10px 12px; font-size: 13px; border-top: 1px solid #F5EBDD; }
+  tr.off-shelf td { color: #C4AE93; }
+  .btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; border: 1px solid #D9C4A8; background: #FFF8EF; color: #8B6F47; font-family: inherit; }
+  .btn:hover { background: #F5EBDD; }
+  .btn.primary { background: #C08B5C; color: #FFFBF5; border-color: #C08B5C; }
+  .btn.primary:hover { background: #A87848; }
+  .btn.danger { color: #B0614A; border-color: #E5C4B8; }
+  .btn.danger:hover { background: #F5E0D8; }
+  .btn.small { padding: 4px 10px; font-size: 11px; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(90,70,50,0.3); justify-content: center; align-items: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #FFFBF5; border: 1px solid #EAD9C2; border-radius: 14px; width: 430px; box-shadow: 0 8px 30px rgba(180,140,100,0.2); }
+  .modal-header { padding: 14px 18px; border-bottom: 1px solid #F0E4D3; font-size: 15px; font-weight: bold; }
+  .modal-body { padding: 16px 18px; }
+  .modal-footer { padding: 12px 18px; border-top: 1px solid #F0E4D3; display: flex; justify-content: flex-end; gap: 10px; }
+  .form-group { margin-bottom: 13px; }
+  .form-group label { display: block; font-size: 12px; color: #96785A; margin-bottom: 4px; }
+  .form-group input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #EAD9C2; border-radius: 8px; background: #FAF5EE; font-size: 13px; color: #5A4632; font-family: inherit; outline: none; }
+  .form-group .readonly { background: #F0E4D3; color: #96785A; }
+  .form-group .hint { font-size: 11px; color: #A98B6E; margin-top: 3px; }
+  .radio-group { display: flex; gap: 18px; font-size: 13px; margin-top: 2px; }
+  .radio-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; color: #5A4632; }
+  .radio-group input { accent-color: #C08B5C; }
+  .step { border: 1px solid #EAD9C2; border-radius: 10px; background: #FFFBF5; padding: 16px; margin-bottom: 14px; }
+  .step h3 { font-size: 13px; color: #C08B5C; margin: 0 0 12px 0; }
+  .search-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .search-row input { flex: 1; padding: 8px 12px; border: 1px solid #EAD9C2; border-radius: 8px; background: #FAF5EE; font-size: 13px; color: #5A4632; font-family: inherit; outline: none; }
+  .warn { font-size: 12px; color: #B0614A; background: #F5E0D8; padding: 6px 12px; border-radius: 6px; display: inline-block; margin-top: 8px; }
+  .queue-status { border: 1px dashed #D9C4A8; border-radius: 10px; background: #FAF5EE; padding: 14px 16px; margin-top: 14px; }
+  .queue-status .ok { color: #5A7A4A; font-weight: bold; }
+  .flow { font-size: 12px; color: #96785A; margin-top: 6px; }
+  .selected-user { font-size: 13px; color: #5A4632; background: #F3E8D7; padding: 8px 12px; border-radius: 8px; display: inline-block; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="title">🏷️ Hotel Points Admin</span>
+  <span class="user">👤 王经理 [Manager]</span>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <a class="nav-item active" onclick="switchTab('products')">商品管理</a>
+    <a class="nav-item" onclick="switchTab('rules')">积分规则</a>
+    <a class="nav-item" onclick="switchTab('adjust')">积分调整</a>
+  </div>
+  <div class="content">
+
+    <!-- Tab 1: 商品管理 (UC6) -->
+    <div class="panel active" id="tab-products">
+      <div class="panel-header">
+        <h2>商品管理</h2>
+        <button class="btn primary" onclick="openModal('modal-product')">+ 新增商品</button>
+      </div>
+      <table>
+        <tr><th>PID</th><th>名称</th><th>所需积分</th><th>最低积分</th><th>库存(剩/总)</th><th>操作</th></tr>
+        <tr><td>P01</td><td>乐高钥匙扣</td><td>800</td><td>400</td><td>12 / 50</td>
+          <td><button class="btn small">编辑</button> <button class="btn small danger">下架</button></td></tr>
+        <tr><td>P02</td><td>SPA 体验券</td><td>2,000</td><td>1,500</td><td>3 / 30</td>
+          <td><button class="btn small">编辑</button> <button class="btn small danger">下架</button></td></tr>
+        <tr class="off-shelf"><td>P03</td><td>已下架商品</td><td>500</td><td>300</td><td>0 / 10</td>
+          <td><button class="btn small">恢复上架</button></td></tr>
+      </table>
+    </div>
+
+    <!-- Tab 2: 积分规则 (UC4) -->
+    <div class="panel" id="tab-rules">
+      <div class="panel-header">
+        <h2>积分规则管理</h2>
+        <button class="btn primary" onclick="openModal('modal-rule')">+ 新增规则</button>
+      </div>
+      <table>
+        <tr><th>PRID</th><th>类型</th><th>阈值</th><th>积分比例</th><th>描述</th><th>操作</th></tr>
+        <tr><td>R01</td><td>按用户等级 (type=1)</td><td>L1</td><td>1.0x</td><td>基础倍率</td>
+          <td><button class="btn small">编辑</button></td></tr>
+        <tr><td>R02</td><td>按用户等级 (type=1)</td><td>L3</td><td>1.5x</td><td>银卡倍率</td>
+          <td><button class="btn small">编辑</button></td></tr>
+        <tr><td>R03</td><td>按时间段 (type=2)</td><td>双十一</td><td>2.0x</td><td>大促活动</td>
+          <td><button class="btn small">编辑</button></td></tr>
+      </table>
+    </div>
+
+    <!-- Tab 3: 积分调整 (UC5) -->
+    <div class="panel" id="tab-adjust">
+      <div class="panel-header"><h2>积分调整（手动加分）</h2></div>
+      <div class="step">
+        <h3>第一步：选择目标用户（UC5 步骤1）</h3>
+        <div class="search-row">
+          <input type="text" placeholder="输入目标用户 UID">
+          <button class="btn primary">验证</button>
+        </div>
+        <div class="selected-user">✅ UID 102 → 王小明 (L3, 当前 2,450 分)</div>
+        <div class="warn">⚠️ 用户不存在或状态异常(Inactive / Forbidden)时不可操作(前置条件2)</div>
+      </div>
+      <div class="step">
+        <h3>第二步：填写加分信息（UC5 步骤2）</h3>
+        <div class="selected-user">已选择：王小明 (UID 102, L3, 当前 2,450 分)</div>
+        <div class="form-group"><label>加分数量*</label><input type="text" placeholder="正整数"></div>
+        <div class="form-group"><label>调整原因</label><input type="text" placeholder="可选"></div>
+        <button class="btn primary">提交（UC5 步骤3）</button>
+      </div>
+      <div class="queue-status">
+        <span class="ok">✅ 已受理，已进入处理队列</span>
+        <div class="flow">状态：排队中 → 处理中 → ✅ 成功 / ⚠️ 重试中</div>
+        <div class="flow">处理完成后用户 currentPoint 更新,并生成一条 PointsTransaction(正数记录)</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: 新增/编辑商品 -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal">
+    <div class="modal-header">新增商品 / 编辑商品</div>
+    <div class="modal-body">
+      <div class="form-group"><label>商品名称*</label><input type="text"></div>
+      <div class="form-group"><label>图片URL*</label><input type="text"></div>
+      <div class="form-group"><label>所需总积分*</label><input type="text"> <span style="font-size:12px;color:#96785A">分</span></div>
+      <div class="form-group"><label>最低需积分*</label><input type="text"> <span style="font-size:12px;color:#96785A">分（差额可现金/券补）</span></div>
+      <div class="form-group"><label>总库存*</label><input type="text"> <span style="font-size:12px;color:#96785A">件</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-product')">取消</button>
+      <button class="btn primary" onclick="closeModal('modal-product')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 新增/编辑规则 -->
+<div class="modal-overlay" id="modal-rule">
+  <div class="modal">
+    <div class="modal-header">新增规则 / 编辑规则</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>规则类型*</label>
+        <div class="radio-group">
+          <label><input type="radio" name="rtype" checked> 按用户等级 (type=1)</label>
+          <label><input type="radio" name="rtype"> 按时间段 (type=2)</label>
+        </div>
+      </div>
+      <div class="form-group"><label>阈值*</label><input type="text"><div class="hint">type=1 填等级 1-5；type=2 填时间段标识</div></div>
+      <div class="form-group"><label>积分比例*</label><input type="text"> <span style="font-size:12px;color:#96785A">x</span></div>
+      <div class="form-group"><label>描述</label><input type="text"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-rule')">取消</button>
+      <button class="btn primary" onclick="closeModal('modal-rule')">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+</script>
+</body>
+</html>
