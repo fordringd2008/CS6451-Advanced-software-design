@@ -14,7 +14,21 @@ spring:
     mode: embedded
     embedded:
       persistent: true
-      destinations: loyalty-queue
+      destinations: loyalty-queue,queue.points.adjustment
+  sql:
+    init:
+      mode: always
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha

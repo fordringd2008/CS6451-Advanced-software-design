@@ -8,3 +8,9 @@
 # Python temp scripts
 _dump_*.py
 _uc_dump*.txt
+
+# Maven build output
+target/
+
+# H2 runtime database files (jdbc:h2:file:./data/hotelloyalty)
+Project/hotel-loyalty/data/
