@@ -152,6 +152,7 @@ public class ProductManagementServiceImpl implements ProductManagementService {
         ProductAdminVO vo = new ProductAdminVO();
         vo.setPid(product.getPid());
         vo.setName(product.getName());
+        vo.setImageUrl(product.getImageUrl());
         vo.setTotalPointsRequired(product.getTotalPointsRequired());
         vo.setMinPointsRequired(product.getMinPointsRequired());
         vo.setRemainingStock(product.getRemainingStock());

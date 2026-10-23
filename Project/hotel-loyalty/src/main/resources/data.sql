@@ -10,10 +10,11 @@ INSERT INTO payment_method (id, pmid, name, description, gmt_create, gmt_modifie
 (2, 'PM-2', 'Points + Cash',     'Pay with points plus a cash supplement', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
 (3, 'PM-3', 'Points + Voucher',  'Pay with points plus a voucher supplement', '2026-01-01 00:00:00', '2026-01-01 00:00:00');
 
--- Points rules: level multipliers L1..L5 (BY_LEVEL, threshold = level number)
-INSERT INTO points_rule (id, prid, name, type, threshold, points_ratio, gmt_create, gmt_modified) VALUES
-(1, 'PR-L1', 'Level 1 multiplier', 1, 1, 1.0, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
-(2, 'PR-L2', 'Level 2 multiplier', 1, 2, 1.2, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
-(3, 'PR-L3', 'Level 3 multiplier', 1, 3, 1.5, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
-(4, 'PR-L4', 'Level 4 multiplier', 1, 4, 1.8, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
-(5, 'PR-L5', 'Level 5 multiplier', 1, 5, 2.0, '2026-01-01 00:00:00', '2026-01-01 00:00:00');
+-- Points rules: level multipliers L1..L5 (BY_LEVEL, threshold = NULL = no min order amount;
+-- points_ratio = percentage per candidate_objects: order amount x ratio% = points)
+INSERT INTO points_rule (prid, name, type, threshold, points_ratio, start_time, end_time, description, gmt_create, gmt_modified) VALUES
+('PR-L1', 'Level 1 multiplier', 1, NULL, 100, NULL, NULL, 'Base earn rate for L1 members: order amount x 100%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+('PR-L2', 'Level 2 multiplier', 1, NULL, 120, NULL, NULL, 'Earn rate for L2 members: order amount x 120%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+('PR-L3', 'Level 3 multiplier', 1, NULL, 150, NULL, NULL, 'Earn rate for L3 members: order amount x 150%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+('PR-L4', 'Level 4 multiplier', 1, NULL, 180, NULL, NULL, 'Earn rate for L4 members: order amount x 180%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+('PR-L5', 'Level 5 multiplier', 1, NULL, 200, NULL, NULL, 'Earn rate for L5 members: order amount x 200%', '2026-01-01 00:00:00', '2026-01-01 00:00:00');

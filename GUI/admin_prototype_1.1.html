@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Hotel Points Admin - Prototype</title>
@@ -56,116 +56,119 @@
 <body>
 <div class="topbar">
   <span class="title">🏷️ Hotel Points Admin</span>
-  <span class="user">👤 王经理 [Manager]</span>
+  <span class="user">👤 Manager Wang [Manager]</span>
 </div>
 <div class="layout">
   <div class="sidebar">
-    <a class="nav-item active" onclick="switchTab('products')">商品管理</a>
-    <a class="nav-item" onclick="switchTab('rules')">积分规则</a>
-    <a class="nav-item" onclick="switchTab('adjust')">积分调整</a>
+    <a class="nav-item active" onclick="switchTab('products')">Products</a>
+    <a class="nav-item" onclick="switchTab('rules')">Points Rules</a>
+    <a class="nav-item" onclick="switchTab('adjust')">Points Adjustment</a>
   </div>
   <div class="content">
 
-    <!-- Tab 1: 商品管理 (UC6) -->
+    <!-- Tab 1: Product Management (UC6) -->
     <div class="panel active" id="tab-products">
       <div class="panel-header">
-        <h2>商品管理</h2>
-        <button class="btn primary" onclick="openModal('modal-product')">+ 新增商品</button>
+        <h2>Product Management</h2>
+        <button class="btn primary" onclick="openModal('modal-product')">+ Add Product</button>
       </div>
       <table>
-        <tr><th>PID</th><th>名称</th><th>所需积分</th><th>最低积分</th><th>库存(剩/总)</th><th>操作</th></tr>
-        <tr><td>P01</td><td>乐高钥匙扣</td><td>800</td><td>400</td><td>12 / 50</td>
-          <td><button class="btn small">编辑</button> <button class="btn small danger">删除</button></td></tr>
-        <tr><td>P02</td><td>SPA 体验券</td><td>2,000</td><td>1,500</td><td>3 / 30</td>
-          <td><button class="btn small">编辑</button> <button class="btn small danger">删除</button></td></tr>
-        <tr><td>P03</td><td>双人晚餐券</td><td>500</td><td>300</td><td>0 / 10</td>
-          <td><button class="btn small">编辑</button> <button class="btn small danger">删除</button></td></tr>
+        <tr><th>PID</th><th>Name</th><th>Points Required</th><th>Min Points</th><th>Stock (Left/Total)</th><th>Actions</th></tr>
+        <tr><td>P01</td><td>Lego Keychain</td><td>800</td><td>400</td><td>12 / 50</td>
+          <td><button class="btn small">Edit</button> <button class="btn small danger">Delete</button></td></tr>
+        <tr><td>P02</td><td>SPA Voucher</td><td>2,000</td><td>1,500</td><td>3 / 30</td>
+          <td><button class="btn small">Edit</button> <button class="btn small danger">Delete</button></td></tr>
+        <tr><td>P03</td><td>Dinner for Two Voucher</td><td>500</td><td>300</td><td>0 / 10</td>
+          <td><button class="btn small">Edit</button> <button class="btn small danger">Delete</button></td></tr>
       </table>
     </div>
 
-    <!-- Tab 2: 积分规则 (UC4) -->
+    <!-- Tab 2: Points Rules (UC4) -->
     <div class="panel" id="tab-rules">
       <div class="panel-header">
-        <h2>积分规则管理</h2>
-        <button class="btn primary" onclick="openModal('modal-rule')">+ 新增规则</button>
+        <h2>Points Rule Management</h2>
+        <button class="btn primary" onclick="openModal('modal-rule')">+ Add Rule</button>
       </div>
       <table>
-        <tr><th>PRID</th><th>类型</th><th>阈值</th><th>积分比例</th><th>描述</th><th>操作</th></tr>
-        <tr><td>R01</td><td>按用户等级 (type=1)</td><td>L1</td><td>1.0x</td><td>基础倍率</td>
-          <td><button class="btn small">编辑</button></td></tr>
-        <tr><td>R02</td><td>按用户等级 (type=1)</td><td>L3</td><td>1.5x</td><td>银卡倍率</td>
-          <td><button class="btn small">编辑</button></td></tr>
-        <tr><td>R03</td><td>按时间段 (type=2)</td><td>双十一</td><td>2.0x</td><td>大促活动</td>
-          <td><button class="btn small">编辑</button></td></tr>
+        <tr><th>PRID</th><th>Name</th><th></th>Type</th><th>Threshold</th><th>Points Ratio</th><th>Description</th><th>Actions</th></tr>
+        <tr><td>PR-L1</td><td>Level 1 Base</td><td>By Level</td><td>—</td><td>100%</td><td>Base earning</td>
+          <td><button class="btn small">Edit</button></td></tr>
+        <tr><td>PR-L3</td><td>Level 3 Bonus</td><td>By Level</td><td>—</td><td>150%</td><td>Silver bonus</td>
+          <td><button class="btn small">Edit</button></td></tr>
+        <tr><td>PR-A5C2E008</td><td>Double Eleven Promo</td><td>By Period</td><td>No threshold</td><td>200%</td><td>Big promotion</td>
+          <td><button class="btn small">Edit</button></td></tr>
       </table>
     </div>
 
-    <!-- Tab 3: 积分调整 (UC5) -->
+    <!-- Tab 3: Points Adjustment (UC5) -->
     <div class="panel" id="tab-adjust">
-      <div class="panel-header"><h2>积分调整（手动加分）</h2></div>
+      <div class="panel-header"><h2>Points Adjustment (Manual Earn)</h2></div>
       <div class="step">
-        <h3>第一步：选择目标用户（UC5 步骤1）</h3>
+        <h3>Step 1: Select Target User (UC5 Step 1)</h3>
         <div class="search-row">
-          <input type="text" placeholder="输入目标用户 UID">
-          <button class="btn primary">验证</button>
+          <input type="text" placeholder="Enter target user UID">
+          <button class="btn primary">Verify</button>
         </div>
-        <div class="selected-user">✅ UID 102 → 王小明 (L3, 当前 2,450 分)</div>
-        <div class="warn">⚠️ 用户不存在或状态异常(Inactive / Forbidden)时不可操作(前置条件2)</div>
+        <div class="selected-user">✅ UID 102 → Wang Xiaoming (L3, current 2,450 pts)</div>
+        <div class="warn">⚠️ Cannot operate if user does not exist or status is abnormal (Inactive / Forbidden) (Precondition 2)</div>
       </div>
       <div class="step">
-        <h3>第二步：填写加分信息（UC5 步骤2）</h3>
-        <div class="selected-user">已选择：王小明 (UID 102, L3, 当前 2,450 分)</div>
-        <div class="form-group"><label>加分数量*</label><input type="text" placeholder="正整数"></div>
-        <div class="form-group"><label>调整原因</label><input type="text" placeholder="可选"></div>
-        <button class="btn primary">提交（UC5 步骤3）</button>
+        <h3>Step 2: Fill in Earn Details (UC5 Step 2)</h3>
+        <div class="selected-user">Selected: Wang Xiaoming (UID 102, L3, current 2,450 pts)</div>
+        <div class="form-group"><label>Points to Earn*</label><input type="text" placeholder="Positive integer"></div>
+        <div class="form-group"><label>Reason</label><input type="text" placeholder="Optional"></div>
+        <button class="btn primary">Submit (UC5 Step 3)</button>
       </div>
       <div class="queue-status">
-        <span class="ok">✅ 已受理，已进入处理队列</span>
-        <div class="flow">状态：排队中 → 处理中 → ✅ 成功 / ⚠️ 重试中</div>
-        <div class="flow">处理完成后用户 currentPoint 更新,并生成一条 PointsTransaction(正数记录)</div>
+        <span class="ok">✅ Accepted, entered processing queue</span>
+        <div class="flow">Status: Queued → Processing → ✅ Success / ⚠️ Retrying</div>
+        <div class="flow">After processing, the user's currentPoint is updated and a PointsTransaction (positive record) is generated</div>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- Modal: 新增/编辑商品 -->
+<!-- Modal: Add/Edit Product -->
 <div class="modal-overlay" id="modal-product">
   <div class="modal">
-    <div class="modal-header">新增商品 / 编辑商品</div>
+    <div class="modal-header">Add Product / Edit Product</div>
     <div class="modal-body">
-      <div class="form-group"><label>商品名称*</label><input type="text"></div>
-      <div class="form-group"><label>图片URL*</label><input type="text"></div>
-      <div class="form-group"><label>所需总积分*</label><input type="text"> <span style="font-size:12px;color:#96785A">分</span></div>
-      <div class="form-group"><label>最低需积分*</label><input type="text"> <span style="font-size:12px;color:#96785A">分（差额可现金/券补）</span></div>
-      <div class="form-group"><label>总库存*</label><input type="text"> <span style="font-size:12px;color:#96785A">件</span></div>
+      <div class="form-group"><label>Product Name*</label><input type="text"></div>
+      <div class="form-group"><label>Image URL*</label><input type="text"></div>
+      <div class="form-group"><label>Total Points Required*</label><input type="text"> <span style="font-size:12px;color:#96785A">pts</span></div>
+      <div class="form-group"><label>Min Points Required*</label><input type="text"> <span style="font-size:12px;color:#96785A">pts (difference can be paid by cash/voucher)</span></div>
+      <div class="form-group"><label>Total Stock*</label><input type="text"> <span style="font-size:12px;color:#96785A">units</span></div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-product')">取消</button>
-      <button class="btn primary" onclick="closeModal('modal-product')">保存</button>
+      <button class="btn" onclick="closeModal('modal-product')">Cancel</button>
+      <button class="btn primary" onclick="closeModal('modal-product')">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: 新增/编辑规则 -->
+<!-- Modal: Add/Edit Rule -->
 <div class="modal-overlay" id="modal-rule">
   <div class="modal">
-    <div class="modal-header">新增规则 / 编辑规则</div>
+    <div class="modal-header">Add Rule / Edit Rule</div>
     <div class="modal-body">
       <div class="form-group">
-        <label>规则类型*</label>
+        <label>Rule Type*</label>
         <div class="radio-group">
-          <label><input type="radio" name="rtype" checked> 按用户等级 (type=1)</label>
-          <label><input type="radio" name="rtype"> 按时间段 (type=2)</label>
+          <label><input type="radio" name="rtype" checked> By Level (type=1)</label>
+          <label><input type="radio" name="rtype"> By Period (type=2)</label>
         </div>
       </div>
-      <div class="form-group"><label>阈值*</label><input type="text"><div class="hint">type=1 填等级 1-5；type=2 填时间段标识</div></div>
-      <div class="form-group"><label>积分比例*</label><input type="text"> <span style="font-size:12px;color:#96785A">x</span></div>
-      <div class="form-group"><label>描述</label><input type="text"></div>
+      <div class="form-group"><label>Rule Name*</label><input type="text"></div>
+      <div class="form-group"><label>Min Order Amount Threshold</label><input type="number" min="0" placeholder="optional, e.g. 100"><div class="hint">Order must reach this amount to apply; leave empty = no threshold</div></div>
+      <div class="form-group"><label>Points Ratio* (%)</label><input type="number" min="1" placeholder="e.g. 150 = 150%"><div class="hint">order amount × ratio% = points</div></div>
+      <div class="form-group"><label>Effective Start Time</label><input type="datetime-local"><div class="hint">Required for type=2</div></div>
+      <div class="form-group"><label>Effective End Time</label><input type="datetime-local"><div class="hint">Required for type=2</div></div>
+      <div class="form-group"><label>Description</label><input type="text" placeholder="optional"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-rule')">取消</button>
-      <button class="btn primary" onclick="closeModal('modal-rule')">保存</button>
+      <button class="btn" onclick="closeModal('modal-rule')">Cancel</button>
+      <button class="btn primary" onclick="closeModal('modal-rule')">Save</button>
     </div>
   </div>
 </div>

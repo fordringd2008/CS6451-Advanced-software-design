@@ -86,8 +86,11 @@ CREATE TABLE points_rule (
     prid            VARCHAR(32)  NOT NULL,
     name            VARCHAR(128) NOT NULL,
     type            INT          NOT NULL,          -- 1 by level / 2 by period
-    threshold       INT,                            -- level no (BY_LEVEL) or min spend (BY_PERIOD)
-    points_ratio    DECIMAL(4, 1),                  -- multiplier (BY_LEVEL, e.g. 1.5) or percentage (BY_PERIOD, e.g. 100); DECIMAL(4,1) max 999.9 — DECIMAL(3,1) max 99.9 cannot store percentage=100
+    threshold       INT,                            -- min external order amount to apply the rule (candidate_objects)
+    points_ratio    INT,                            -- percentage: order amount x ratio% = points (candidate_objects; level multipliers stored as 100/120/150/180/200)
+    start_time      TIMESTAMP,                      -- effective period start, type=2 only (candidate_objects)
+    end_time        TIMESTAMP,                      -- effective period end, type=2 only (candidate_objects)
+    description     VARCHAR(256),                   -- rule description (candidate_objects)
     gmt_create      TIMESTAMP    NOT NULL,
     gmt_modified    TIMESTAMP    NOT NULL,
     CONSTRAINT uk_points_rule_prid UNIQUE (prid)
