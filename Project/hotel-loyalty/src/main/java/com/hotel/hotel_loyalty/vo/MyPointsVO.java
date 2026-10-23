@@ -3,6 +3,7 @@ package com.hotel.hotel_loyalty.vo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * My-points page header payload (GUI: user card + points card + register time).
@@ -24,4 +25,7 @@ public class MyPointsVO {
 
     /** Registration time (GUI: "Registered 2024-06-15"). */
     private LocalDateTime registerTime;
+
+    /** Recent redemption records shown below the points card. */
+    private List<RedemptionRecordVO> redemptions;
 }

@@ -193,5 +193,31 @@
   </div>
 
 </div>
+<script>
+  const userId = localStorage.getItem("userId") || "U-001";
+  const apiRoot = localStorage.getItem("apiRoot") || "http://localhost:8081/api";
+  fetch(`${apiRoot}/guest/${encodeURIComponent(userId)}/my-points`)
+    .then(response => response.ok ? response.json() : Promise.reject(new Error("Could not load points")))
+    .then(result => {
+      if (result.code !== 0) throw new Error(result.message);
+      const data = result.data;
+      document.querySelector(".user-info .name").textContent = data.name;
+      document.querySelector(".user-info .meta").textContent = `Member Level: ${data.levelLabel}`;
+      document.querySelector(".points-card .amount").innerHTML =
+        `${Number(data.currentPoint).toLocaleString()} <span>pts</span>`;
+      document.querySelector(".reg-row span:last-child").textContent =
+        new Date(data.registerTime).toLocaleDateString("en-CA");
+      const records = document.querySelectorAll(".record-card");
+      data.redemptions.forEach((record, index) => {
+        if (!records[index]) return;
+        records[index].querySelector(".prod-name").textContent = record.productName;
+        records[index].querySelector(".order-id").textContent = `Order ${record.oid}`;
+        records[index].querySelector(".pts").textContent = `-${record.pointsUsed} pts`;
+        records[index].querySelector(".date").textContent =
+          new Date(record.gmtCreate).toLocaleDateString("en-CA");
+      });
+    })
+    .catch(error => console.error(error));
+</script>
 </body>
 </html>

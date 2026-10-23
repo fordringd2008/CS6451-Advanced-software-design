@@ -101,5 +101,81 @@
   </div>
 
 </div>
+<script>
+  const userId = localStorage.getItem("userId") || "U-001";
+  const apiRoot = localStorage.getItem("apiRoot") || "http://localhost:8081/api";
+  const pid = new URLSearchParams(window.location.search).get("pid") || "P-001";
+  let paymentData;
+  const valueRows = document.querySelectorAll(".pay-row .value");
+  const productName = document.querySelector(".product .name");
+  const productPrice = document.querySelector(".product .price");
+  const minimum = document.querySelector(".product .price:last-child");
+  const methods = document.querySelector(".section:nth-of-type(3)");
+  const button = document.querySelector(".btn.primary");
+  fetch(`${apiRoot}/guest/${encodeURIComponent(userId)}/confirm-payment/${encodeURIComponent(pid)}`)
+    .then(response => response.ok ? response.json() : Promise.reject(new Error("Could not load payment details")))
+    .then(result => {
+      if (result.code !== 0) throw new Error(result.message);
+      paymentData = result.data;
+      productName.textContent = paymentData.name;
+      productPrice.textContent = `${paymentData.totalPointsRequired.toLocaleString()} pts`;
+      minimum.textContent = `Min Points Required: ${paymentData.minPointsRequired.toLocaleString()} pts`;
+      valueRows[0].textContent = `${paymentData.totalPointsRequired.toLocaleString()} pts`;
+      valueRows[1].textContent = `${paymentData.availableBalance.toLocaleString()} pts`;
+      methods.querySelectorAll(".method").forEach((row, index) => {
+        const method = paymentData.paymentMethods[index];
+        if (!method) row.remove();
+        else {
+          row.querySelector("label").lastChild.textContent = ` ${method.name} (Type ${index + 1})`;
+          row.querySelector("input").value = method.pmid;
+        }
+      });
+      const supplement = document.createElement("div");
+      supplement.id = "supplement-fields";
+      supplement.innerHTML = `
+        <label style="display:block;margin-top:8px;font-size:12px;color:#96785A">
+          Points to use <input id="points-used" type="number" min="${paymentData.minPointsRequired}"
+            max="${paymentData.availableBalance}" value="${paymentData.totalPointsRequired}"
+            style="width:90px;margin-left:8px">
+        </label>
+        <label style="display:block;margin-top:8px;font-size:12px;color:#96785A">
+          Supplement <input id="supplement-value" type="number" min="0.01" step="0.01" value="1"
+            style="width:90px;margin-left:8px">
+        </label>`;
+      methods.appendChild(supplement);
+      const updateSupplement = () => {
+        const combination = selectedMethod() !== "PM-1";
+        supplement.style.display = combination ? "block" : "none";
+        document.querySelector("#points-used").value = combination
+          ? paymentData.minPointsRequired : paymentData.totalPointsRequired;
+      };
+      methods.querySelectorAll('input[name="pay"]').forEach(input =>
+        input.addEventListener("change", updateSupplement));
+      updateSupplement();
+    })
+    .catch(error => { button.textContent = error.message; button.disabled = true; });
+  button.addEventListener("click", () => {
+    const selected = document.querySelector('input[name="pay"]:checked');
+    if (!paymentData || !selected) return;
+    const pointsUsed = Number(document.querySelector("#points-used")?.value ||
+      paymentData.totalPointsRequired);
+    const supplementValue = Number(document.querySelector("#supplement-value")?.value || 0);
+    const payload = { uid: userId, pid: paymentData.pid, pmid: selected.value, pointsUsed };
+    if (selected.value === "PM-2") payload.cashUsed = supplementValue;
+    if (selected.value === "PM-3") payload.voucherUsed = supplementValue;
+    button.disabled = true;
+    fetch(`${apiRoot}/guest/redemptions`, { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      .then(response => response.json())
+      .then(result => {
+        if (result.code !== 0) throw new Error(result.message);
+        alert(`Payment confirmed. Order ${result.data} is now paid.`);
+      })
+      .catch(error => { alert(error.message); button.disabled = false; });
+  });
+  function selectedMethod() {
+    return document.querySelector('input[name="pay"]:checked')?.value || "PM-1";
+  }
+</script>
 </body>
 </html>

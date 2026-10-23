@@ -105,5 +105,30 @@
   </div>
 
 </div>
+<script>
+  // Set localStorage.userId after login; U-001 keeps the prototype usable standalone.
+  const userId = localStorage.getItem("userId") || "U-001";
+  const apiRoot = localStorage.getItem("apiRoot") || "http://localhost:8081/api";
+  const grid = document.querySelector(".grid");
+  const balance = document.querySelector(".balance strong");
+  fetch(`${apiRoot}/guest/${encodeURIComponent(userId)}/points-mall`)
+    .then(response => response.ok ? response.json() : Promise.reject(new Error("Could not load points mall")))
+    .then(result => {
+      if (result.code !== 0) throw new Error(result.message);
+      balance.textContent = Number(result.data.currentPoint).toLocaleString();
+      grid.innerHTML = result.data.products.map(product => `
+        <button class="card" type="button" data-pid="${product.pid}">
+          <span class="img-placeholder">${product.imageUrl ? `<img src="${product.imageUrl}" alt="">` : "[img]"}</span>
+          <span class="name">${product.name}</span>
+          <span class="price">${product.totalPointsRequired.toLocaleString()} pts</span>
+        </button>`).join("");
+      grid.querySelectorAll("[data-pid]").forEach(card => {
+        card.addEventListener("click", () => {
+          window.location.href = `confirm_payment_prototype_1.1.html?pid=${encodeURIComponent(card.dataset.pid)}`;
+        });
+      });
+    })
+    .catch(error => console.error(error));
+</script>
 </body>
 </html>
