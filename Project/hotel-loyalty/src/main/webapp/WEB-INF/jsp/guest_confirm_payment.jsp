@@ -32,6 +32,7 @@
     <nav class="sidebar">
         <a class="nav-item" href="${pageContext.request.contextPath}/guest/${uid}/points-mall">Points Mall</a>
         <a class="nav-item" href="${pageContext.request.contextPath}/guest/${uid}/my-points">My Points</a>
+        <a class="nav-item" href="${pageContext.request.contextPath}/logout" style="color:#A05B3C;">Sign out</a>
     </nav>
     <main class="content">
         <h2>Confirm Payment</h2>

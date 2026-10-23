@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,15 +44,36 @@ public class GuestPointsController {
         this.guestPointsService = guestPointsService;
     }
 
+    /**
+     * IDOR defense: the uid in the request must match the session identity.
+     * <p>
+     * Same rule as {@link GuestJspController#checkOwnership} — the REST API
+     * must not rely on the JSP layer alone, because anyone can call the API
+     * directly with a different uid (OWASP: never trust client-supplied
+     * identifiers).
+     *
+     * @param requestUid uid from the URL path or request body
+     * @throws AccessDeniedException if the uid does not match
+     */
+    private void checkOwnership(String requestUid) {
+        String sessionUid = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        if (!requestUid.equals(sessionUid)) {
+            throw new AccessDeniedException("Not your resource");
+        }
+    }
+
     @Operation(summary = "Load points mall")
     @GetMapping("/{uid}/points-mall")
     public Result<PointsMallVO> pointsMall(@PathVariable @NotBlank String uid) {
+        checkOwnership(uid);
         return Result.success(guestPointsService.getPointsMall(uid));
     }
 
     @Operation(summary = "Load my points")
     @GetMapping("/{uid}/my-points")
     public Result<MyPointsVO> myPoints(@PathVariable @NotBlank String uid) {
+        checkOwnership(uid);
         return Result.success(guestPointsService.getMyPoints(uid));
     }
 
@@ -58,12 +81,14 @@ public class GuestPointsController {
     @GetMapping("/{uid}/confirm-payment/{pid}")
     public Result<ConfirmPaymentVO> confirmPayment(@PathVariable @NotBlank String uid,
                                                     @PathVariable @NotBlank String pid) {
+        checkOwnership(uid);
         return Result.success(guestPointsService.getConfirmPayment(uid, pid));
     }
 
     @Operation(summary = "Redeem a product")
     @PostMapping("/redemptions")
     public Result<String> redeem(@Valid @RequestBody RedemptionRequest request) {
+        checkOwnership(request.getUid());
         return Result.success(guestPointsService.redeem(request));
     }
 }

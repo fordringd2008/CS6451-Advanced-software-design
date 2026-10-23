@@ -17,10 +17,10 @@ INSERT INTO points_rule (id, prid, name, type, threshold, points_ratio, gmt_crea
 (4, 'PR-L4', 'Level 4 multiplier', 1, 4, 1.8, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
 (5, 'PR-L5', 'Level 5 multiplier', 1, 5, 2.0, '2026-01-01 00:00:00', '2026-01-01 00:00:00');
 
--- Mock: one manager, one guest
+-- Mock: one manager, one guest (BCrypt-hashed passwords)
 INSERT INTO "user" (id, uid, name, password, status, role, register_time, level, current_point, gmt_create, gmt_modified) VALUES
-(1, 'U-ADMIN-01', 'admin', '$2a$10$placeholderhashforadmin123456789012', 0, 1, '2026-01-01 00:00:00', 5, 0, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
-(2, 'U-GUEST-01', 'alice', '$2a$10$placeholderhashforguest1234567890123', 0, 0, '2026-01-02 00:00:00', 2, 5000, '2026-01-02 00:00:00', '2026-01-02 00:00:00');
+(1, 'U-ADMIN-01', 'admin', '$2a$10$Ia0RNpJpsE7y.VGIGtgLdOoHLyJvlk6tzQbvqpiYqwa/JsCPMUo6q', 0, 1, '2026-01-01 00:00:00', 5, 0, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+(2, 'U-GUEST-01', 'alice', '$2a$10$Cpv6yorUPaOqxXZgUdmfweDJfBx4dvnAC59Mu1wWrx4kLBX4UtjDq', 0, 0, '2026-01-02 00:00:00', 2, 5000, '2026-01-02 00:00:00', '2026-01-02 00:00:00');
 
 -- Mock: sample products
 INSERT INTO product (id, pid, name, image_url, total_points_required, min_points_required, total_stock, remaining_stock, gmt_create, gmt_modified) VALUES

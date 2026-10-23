@@ -3,6 +3,7 @@ package com.hotel.hotel_loyalty.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -48,6 +49,14 @@ public class GlobalExceptionHandler {
     public Result<Void> handleIllegalState(IllegalStateException e) {
         log.warn("conflict: {}", e.getMessage());
         return Result.fail(409, e.getMessage());
+    }
+
+    /** Access denied (e.g. IDOR defense: path uid != session uid). */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Result<Void> handleAccessDenied(AccessDeniedException e) {
+        log.warn("access denied: {}", e.getMessage());
+        return Result.fail(403, e.getMessage());
     }
 
     /** Fallback for any uncaught exception. */

@@ -22,6 +22,11 @@ spring:
     view:
       prefix: /WEB-INF/jsp/
       suffix: .jsp
+
+server:
+  servlet:
+    session:
+      timeout: 30m  # session timeout (security best practice: explicit config)
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

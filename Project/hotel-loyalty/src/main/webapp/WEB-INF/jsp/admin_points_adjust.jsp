@@ -64,6 +64,7 @@
         <a class="nav-item" href="/admin/products">Products</a>
         <a class="nav-item" href="/admin/rules">Points Rules</a>
         <a class="nav-item active" href="/admin/points">Points Adjustment</a>
+        <a class="nav-item" href="/logout" style="color:#A05B3C;">Sign out</a>
     </div>
     <div class="content">
 

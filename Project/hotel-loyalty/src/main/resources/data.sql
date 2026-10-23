@@ -18,3 +18,9 @@ INSERT INTO points_rule (prid, name, type, threshold, points_ratio, start_time, 
 ('PR-L3', 'Level 3 multiplier', 1, NULL, 150, NULL, NULL, 'Earn rate for L3 members: order amount x 150%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
 ('PR-L4', 'Level 4 multiplier', 1, NULL, 180, NULL, NULL, 'Earn rate for L4 members: order amount x 180%', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
 ('PR-L5', 'Level 5 multiplier', 1, NULL, 200, NULL, NULL, 'Earn rate for L5 members: order amount x 200%', '2026-01-01 00:00:00', '2026-01-01 00:00:00');
+
+-- Seed users: one manager + one guest, BCrypt-hashed passwords (cost 10)
+-- Demo credentials: U-ADMIN-01 / admin123 (manager), U-GUEST-01 / guest123 (guest)
+INSERT INTO "user" (id, uid, name, password, status, role, register_time, level, current_point, gmt_create, gmt_modified) VALUES
+(1, 'U-ADMIN-01', 'admin', '$2a$10$Ia0RNpJpsE7y.VGIGtgLdOoHLyJvlk6tzQbvqpiYqwa/JsCPMUo6q', 0, 1, '2026-01-01 00:00:00', 5, 0, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+(2, 'U-GUEST-01', 'alice', '$2a$10$Cpv6yorUPaOqxXZgUdmfweDJfBx4dvnAC59Mu1wWrx4kLBX4UtjDq', 0, 0, '2026-01-02 00:00:00', 2, 5000, '2026-01-02 00:00:00', '2026-01-02 00:00:00');

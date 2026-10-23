@@ -2,6 +2,8 @@ package com.hotel.hotel_loyalty.controller;
 
 import com.hotel.hotel_loyalty.dto.RedemptionRequest;
 import com.hotel.hotel_loyalty.service.GuestPointsService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,24 @@ public class GuestJspController {
     }
 
     /**
+     * IDOR defense: URL uid must match the session identity.
+     * <p>
+     * The URL uid is for routing only; access control uses the
+     * server-side SecurityContext (OWASP: never trust
+     * client-supplied identifiers).
+     *
+     * @param pathUid uid from the URL path
+     * @throws AccessDeniedException if the uid does not match
+     */
+    private void checkOwnership(String pathUid) {
+        String sessionUid = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        if (!pathUid.equals(sessionUid)) {
+            throw new AccessDeniedException("Not your resource");
+        }
+    }
+
+    /**
      * Renders the server-side points mall page.
      *
      * @param uid guest business key
@@ -41,6 +61,7 @@ public class GuestJspController {
      */
     @GetMapping("/{uid}/points-mall")
     public String pointsMall(@PathVariable String uid, Model model) {
+        checkOwnership(uid);
         model.addAttribute("uid", uid);
         model.addAttribute("mall", guestPointsService.getPointsMall(uid));
         return "guest_points_mall";
@@ -55,6 +76,7 @@ public class GuestJspController {
      */
     @GetMapping("/{uid}/my-points")
     public String myPoints(@PathVariable String uid, Model model) {
+        checkOwnership(uid);
         model.addAttribute("uid", uid);
         model.addAttribute("points", guestPointsService.getMyPoints(uid));
         return "guest_my_points";
@@ -70,6 +92,7 @@ public class GuestJspController {
      */
     @GetMapping("/{uid}/confirm-payment/{pid}")
     public String confirmPayment(@PathVariable String uid, @PathVariable String pid, Model model) {
+        checkOwnership(uid);
         model.addAttribute("uid", uid);
         model.addAttribute("payment", guestPointsService.getConfirmPayment(uid, pid));
         return "guest_confirm_payment";
@@ -86,6 +109,7 @@ public class GuestJspController {
     @PostMapping("/{uid}/redemptions")
     public String redeem(@PathVariable String uid, @ModelAttribute RedemptionRequest request,
                          RedirectAttributes redirectAttributes) {
+        checkOwnership(uid);
         request.setUid(uid);
         String oid = guestPointsService.redeem(request);
         redirectAttributes.addFlashAttribute("successMessage", "Payment confirmed. Order " + oid + " is paid.");
