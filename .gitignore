@@ -14,3 +14,4 @@ target/
 
 # H2 runtime database files (jdbc:h2:file:./data/hotelloyalty)
 Project/hotel-loyalty/data/
+Project/hotel-loyalty/hs_err_pid24472.log

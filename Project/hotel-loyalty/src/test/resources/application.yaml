@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hotel-loyalty-test;DB_CLOSE_DELAY=-1
+  sql:
+    init:
+      data-locations: classpath:/data.sql

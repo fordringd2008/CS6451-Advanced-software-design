@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel Points Guest - Prototype</title>
+<style>
+  body { font-family: Georgia, serif; background: #FAF5EE; color: #5A4632; margin: 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; background: #FFFBF5;
+    border-bottom: 1px solid #EAD9C2; padding: 12px 20px; }
+  .topbar .title { font-size: 17px; font-weight: bold; }
+  .topbar .user { font-size: 13px; color: #96785A; }
+  .layout { display: flex; min-height: calc(100vh - 52px); }
+  .sidebar { width: 170px; background: #FFFBF5; border-right: 1px solid #EAD9C2;
+    padding: 14px 0; flex-shrink: 0; }
+  .nav-item { display: block; padding: 13px 18px; font-size: 14px; color: #96785A;
+    cursor: pointer; border-left: 3px solid transparent; text-decoration: none; }
+  .nav-item:hover { background: #FAF5EE; }
+  .nav-item.active { color: #C08B5C; font-weight: bold; background: #FAF5EE;
+    border-left-color: #C08B5C; }
+  .content { flex: 1; padding: 20px 24px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; }
+  .panel-header h2 { font-size: 16px; margin: 0; }
+  .summary { display: flex; gap: 14px; margin-bottom: 16px; }
+  .summary-card { flex: 1; background: #FFFBF5; border: 1px solid #EAD9C2;
+    border-radius: 10px; padding: 14px 16px; }
+  .summary-card .label { color: #96785A; font-size: 12px; }
+  .summary-card .value { display: block; font-size: 22px; font-weight: bold; margin-top: 5px; }
+  table { width: 100%; border-collapse: collapse; background: #FFFBF5;
+    border: 1px solid #EAD9C2; border-radius: 10px; overflow: hidden; }
+  th { background: #F5EBDD; color: #96785A; font-size: 12px; padding: 10px 12px;
+    text-align: left; }
+  td { padding: 10px 12px; font-size: 13px; border-top: 1px solid #F5EBDD; }
+  .btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;
+    border: 1px solid #D9C4A8; background: #FFF8EF; color: #8B6F47; font-family: inherit; }
+  .btn:hover { background: #F5EBDD; }
+  .btn.primary { background: #C08B5C; color: #FFFBF5; border-color: #C08B5C; }
+  .btn.primary:hover { background: #A87848; }
+  .btn:disabled { cursor: not-allowed; opacity: .55; }
+  .profile { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .profile-card { background: #FFFBF5; border: 1px solid #EAD9C2; border-radius: 10px;
+    padding: 16px; }
+  .profile-card h3 { font-size: 13px; color: #C08B5C; margin: 0 0 12px; }
+  .profile-row { display: flex; justify-content: space-between; font-size: 13px;
+    padding: 8px 0; border-bottom: 1px solid #F5EBDD; }
+  .profile-row:last-child { border-bottom: 0; }
+  .profile-row span:first-child { color: #96785A; }
+  .empty, .error { padding: 20px; text-align: center; color: #96785A; }
+  .error { color: #B0614A; background: #F5E0D8; border-radius: 8px; }
+  @media (max-width: 700px) {
+    .layout { display: block; }
+    .sidebar { width: auto; display: flex; overflow-x: auto; }
+    .nav-item { white-space: nowrap; }
+    .content { padding: 16px; }
+    .summary, .profile { display: block; }
+    .summary-card, .profile-card { margin-bottom: 12px; }
+    table { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="title">🏷️ Hotel Points Guest</span>
+  <span class="user" id="user-label">👤 Guest</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Guest navigation">
+    <a class="nav-item active" href="#mall" data-panel="mall">Points Mall</a>
+    <a class="nav-item" href="#points" data-panel="points">My Points</a>
+    <a class="nav-item" href="points_mall_prototype_1.1.html">Mobile Mall</a>
+  </nav>
+  <main class="content">
+    <section class="panel active" id="tab-mall">
+      <div class="panel-header">
+        <h2>Points Mall</h2>
+        <button class="btn primary" id="refresh-mall" type="button">Refresh</button>
+      </div>
+      <div class="summary">
+        <div class="summary-card"><span class="label">Available Points</span>
+          <span class="value" id="mall-balance">—</span></div>
+        <div class="summary-card"><span class="label">Available Rewards</span>
+          <span class="value" id="product-count">—</span></div>
+      </div>
+      <div id="mall-message" class="empty">Loading products...</div>
+      <table id="product-table" hidden>
+        <thead><tr><th>PID</th><th>Product</th><th>Points Required</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="tab-points">
+      <div class="panel-header">
+        <h2>My Points</h2>
+        <button class="btn primary" id="refresh-points" type="button">Refresh</button>
+      </div>
+      <div id="points-message" class="empty">Loading profile...</div>
+      <div class="profile" id="profile-content" hidden>
+        <div class="profile-card">
+          <h3>Account</h3>
+          <div class="profile-row"><span>Name</span><strong id="profile-name"></strong></div>
+          <div class="profile-row"><span>Member Level</span><strong id="profile-level"></strong></div>
+          <div class="profile-row"><span>Registered</span><strong id="profile-register"></strong></div>
+          <div class="profile-row"><span>Current Points</span><strong id="profile-balance"></strong></div>
+        </div>
+        <div class="profile-card">
+          <h3>Recent Redemptions</h3>
+          <table id="redemption-table">
+            <thead><tr><th>Order</th><th>Product</th><th>Points</th><th>Date</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+  const userId = localStorage.getItem("userId") || "U-001";
+  const apiRoot = localStorage.getItem("apiRoot") || "http://localhost:8081/api";
+  const numberFormat = new Intl.NumberFormat();
+
+  function api(path, options) {
+    return fetch(`${apiRoot}${path}`, options).then(response => {
+      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+      return response.json();
+    }).then(result => {
+      if (result.code !== 0) throw new Error(result.message || "Request failed");
+      return result.data;
+    });
+  }
+
+  function showError(elementId, error) {
+    const element = document.getElementById(elementId);
+    element.className = "error";
+    element.textContent = error.message;
+  }
+
+  function loadMall() {
+    const message = document.getElementById("mall-message");
+    message.className = "empty";
+    message.textContent = "Loading products...";
+    api(`/guest/${encodeURIComponent(userId)}/points-mall`).then(data => {
+      document.getElementById("mall-balance").textContent = numberFormat.format(data.currentPoint);
+      document.getElementById("product-count").textContent = data.products.length;
+      const body = document.querySelector("#product-table tbody");
+      body.innerHTML = data.products.map(product => `
+        <tr><td>${product.pid}</td><td>${product.name}</td>
+        <td>${numberFormat.format(product.totalPointsRequired)} pts</td>
+        <td><button class="btn primary redeem" type="button" data-pid="${product.pid}">
+          Redeem</button></td></tr>`).join("");
+      document.getElementById("product-table").hidden = false;
+      message.hidden = true;
+      body.querySelectorAll(".redeem").forEach(button => button.addEventListener("click", () => {
+        window.location.href = `confirm_payment_prototype_1.1.html?pid=${encodeURIComponent(button.dataset.pid)}`;
+      }));
+    }).catch(error => showError("mall-message", error));
+  }
+
+  function loadPoints() {
+    const message = document.getElementById("points-message");
+    message.className = "empty";
+    message.hidden = false;
+    message.textContent = "Loading profile...";
+    api(`/guest/${encodeURIComponent(userId)}/my-points`).then(data => {
+      document.getElementById("user-label").textContent = `👤 ${data.name} [Guest]`;
+      document.getElementById("profile-name").textContent = data.name;
+      document.getElementById("profile-level").textContent = data.levelLabel;
+      document.getElementById("profile-register").textContent =
+        new Date(data.registerTime).toLocaleDateString("en-CA");
+      document.getElementById("profile-balance").textContent =
+        `${numberFormat.format(data.currentPoint)} pts`;
+      document.querySelector("#redemption-table tbody").innerHTML =
+        data.redemptions.map(record => `<tr><td>${record.oid}</td>
+        <td>${record.productName}</td><td>-${numberFormat.format(record.pointsUsed)} pts</td>
+        <td>${new Date(record.gmtCreate).toLocaleDateString("en-CA")}</td></tr>`).join("")
+        || '<tr><td colspan="4" class="empty">No redemptions yet</td></tr>';
+      document.getElementById("profile-content").hidden = false;
+      message.hidden = true;
+    }).catch(error => showError("points-message", error));
+  }
+
+  document.querySelectorAll(".nav-item[data-panel]").forEach(item => item.addEventListener("click", event => {
+    event.preventDefault();
+    document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+    document.getElementById(`tab-${item.dataset.panel}`).classList.add("active");
+    document.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+    item.classList.add("active");
+    if (item.dataset.panel === "points") loadPoints();
+  }));
+  document.getElementById("refresh-mall").addEventListener("click", loadMall);
+  document.getElementById("refresh-points").addEventListener("click", loadPoints);
+  document.getElementById("user-label").textContent = `👤 ${userId} [Guest]`;
+  loadMall();
+</script>
+</body>
+</html>
