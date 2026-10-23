@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>Hotel Points Admin — Points Adjustment</title>
     <style>
         body { font-family: Georgia, serif; background: #FAF5EE; color: #5A4632; margin: 0; }
