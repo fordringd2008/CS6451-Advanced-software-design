@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Fordring
  * @since 1.0
  */
-@Tag(name = "UC5 积分调整", description = "Admin manually add points — use case 5")
+@Tag(name = "UC5 Points Adjustment", description = "Admin manually add points — use case 5")
 @RestController
 @RequestMapping("/api/admin/points")
 public class PointsAdjustmentController {
@@ -36,7 +36,7 @@ public class PointsAdjustmentController {
         this.pointsAdjustmentService = pointsAdjustmentService;
     }
 
-    @Operation(summary = "验证目标用户", description = "UC5 step 1 — look up user for the adjustment form")
+    @Operation(summary = "Verify target user", description = "UC5 step 1 — look up user for the adjustment form")
     @GetMapping("/user/{uid}")
     public Result<UserPointsVO> getUser(
             @Parameter(description = "User business key", example = "U-001")
@@ -44,7 +44,7 @@ public class PointsAdjustmentController {
         return Result.success(pointsAdjustmentService.getUserByUid(uid));
     }
 
-    @Operation(summary = "提交加分",
+    @Operation(summary = "Submit points",
             description = "UC5 steps 2-4 — validates user status then enqueues; consumer credits asynchronously")
     @PostMapping("/adjustment")
     public Result<String> adjust(@Valid @RequestBody PointsAdjustmentDTO dto) {

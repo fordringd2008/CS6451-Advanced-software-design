@@ -5,8 +5,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * One row in the admin points-rule table (GUI: admin 积分规则 tab).
- * Columns: PRID | 类型 | 阈值 | 积分比例 | 描述 | 操作.
+ * One row in the admin points-rule table (GUI: admin points-rules tab).
+ * Columns: PRID | Type | Threshold | Points Ratio | Description | Actions.
  * <p>
  * Field semantics follow candidate_objects_1.0.xlsx (team decision 2026-10-22):
  * threshold = min order amount (null for BY_LEVEL); pointsRatio = percentage.

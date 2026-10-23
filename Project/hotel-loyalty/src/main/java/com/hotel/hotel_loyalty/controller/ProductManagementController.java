@@ -29,7 +29,7 @@ import java.util.List;
  * @author Fordring
  * @since 1.0
  */
-@Tag(name = "UC6 商品管理", description = "Admin product CRUD — use case 6")
+@Tag(name = "UC6 Product Management", description = "Admin product CRUD — use case 6")
 @RestController
 @RequestMapping("/api/admin/products")
 public class ProductManagementController {
@@ -40,13 +40,13 @@ public class ProductManagementController {
         this.productManagementService = productManagementService;
     }
 
-    @Operation(summary = "商品列表", description = "All products for the admin table (GUI 商品管理 tab)")
+    @Operation(summary = "Product list", description = "All products for the admin table (GUI product-management tab)")
     @GetMapping
     public Result<List<ProductAdminVO>> list() {
         return Result.success(productManagementService.listProducts());
     }
 
-    @Operation(summary = "商品详情", description = "Get one product by business key")
+    @Operation(summary = "Product detail", description = "Get one product by business key")
     @GetMapping("/{pid}")
     public Result<ProductAdminVO> get(
             @Parameter(description = "Product business key", example = "P-001")
@@ -54,13 +54,13 @@ public class ProductManagementController {
         return Result.success(productManagementService.getProductByPid(pid));
     }
 
-    @Operation(summary = "新增商品", description = "UC6 submitCreate — remainingStock = totalStock on create")
+    @Operation(summary = "Create product", description = "UC6 submitCreate — remainingStock = totalStock on create")
     @PostMapping
     public Result<String> create(@Valid @RequestBody ProductCreateDTO dto) {
         return Result.success(productManagementService.createProduct(dto));
     }
 
-    @Operation(summary = "编辑商品", description = "UC6 submitUpdate — validates min ≤ total, remaining ≤ total")
+    @Operation(summary = "Edit product", description = "UC6 submitUpdate — validates min ≤ total, remaining ≤ total")
     @PutMapping("/{pid}")
     public Result<Void> update(
             @Parameter(description = "Product business key", example = "P-001")
@@ -71,7 +71,7 @@ public class ProductManagementController {
         return Result.success();
     }
 
-    @Operation(summary = "删除商品",
+    @Operation(summary = "Delete product",
             description = "UC6 submitDelete — Extension 6a: blocked (409) if pending/paid orders reference it")
     @DeleteMapping("/{pid}")
     public Result<Void> delete(

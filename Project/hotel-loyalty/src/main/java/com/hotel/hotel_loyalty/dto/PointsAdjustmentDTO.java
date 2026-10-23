@@ -14,15 +14,15 @@ import lombok.Data;
 @Data
 public class PointsAdjustmentDTO {
 
-    /** Target user business key (GUI step 1: 选择目标用户). */
+    /** Target user business key (GUI step 1: select target user). */
     @NotBlank(message = "uid must not be blank")
     private String uid;
 
-    /** Points to add — positive integer (GUI step 2: 加分数量*). */
+    /** Points to add — positive integer (GUI step 2: points amount*). */
     @NotNull(message = "points must not be null")
     @Min(value = 1, message = "points must be a positive integer")
     private Integer points;
 
-    /** Optional adjustment reason (GUI step 2: 调整原因, use case: "optional reason"). */
+    /** Optional adjustment reason (GUI step 2: reason, use case: "optional reason"). */
     private String reason;
 }

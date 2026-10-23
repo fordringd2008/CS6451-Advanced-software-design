@@ -20,29 +20,29 @@ import java.time.LocalDateTime;
 @Data
 public class PointsRuleDTO {
 
-    /** Rule display name (GUI: 规则名称). */
+    /** Rule display name (GUI: rule name). */
     @NotBlank(message = "rule name must not be blank")
     private String name;
 
-    /** Rule type: 1 = by user level, 2 = by time period (GUI: 规则类型*). */
+    /** Rule type: 1 = by user level, 2 = by time period (GUI: rule type*). */
     @NotNull(message = "rule type must not be null")
     private Integer type;
 
-    /** Minimum external order amount to apply the rule; null for BY_LEVEL (GUI: 阈值). */
+    /** Minimum external order amount to apply the rule; null for BY_LEVEL (GUI: threshold). */
     @Min(value = 0, message = "threshold must not be negative")
     private Integer threshold;
 
-    /** Percentage: order amount × ratio% = points, e.g. 150 = 150% (GUI: 积分比例*). */
+    /** Percentage: order amount × ratio% = points, e.g. 150 = 150% (GUI: points ratio*). */
     @NotNull(message = "points ratio must not be null")
     @Min(value = 1, message = "points ratio must be at least 1")
     private Integer pointsRatio;
 
-    /** Effective period start — type=2 only (GUI: 生效开始时间). */
+    /** Effective period start — type=2 only (GUI: start time). */
     private LocalDateTime startTime;
 
-    /** Effective period end — type=2 only (GUI: 生效结束时间). */
+    /** Effective period end — type=2 only (GUI: end time). */
     private LocalDateTime endTime;
 
-    /** Rule description (GUI: 描述, optional). */
+    /** Rule description (GUI: description, optional). */
     private String description;
 }

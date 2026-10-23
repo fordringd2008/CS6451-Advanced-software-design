@@ -14,25 +14,25 @@ import lombok.Data;
 @Data
 public class ProductCreateDTO {
 
-    /** Product display name (GUI: 商品名称*). */
+    /** Product display name (GUI: product name*). */
     @NotBlank(message = "product name must not be blank")
     private String name;
 
-    /** Product image URL (GUI: 图片URL*). */
+    /** Product image URL (GUI: image URL*). */
     @NotBlank(message = "image URL must not be blank")
     private String imageUrl;
 
-    /** Total points required (GUI: 所需总积分*). */
+    /** Total points required (GUI: total points required*). */
     @NotNull(message = "total points required must not be null")
     @Min(value = 1, message = "total points required must be positive")
     private Integer totalPointsRequired;
 
-    /** Minimum points required (GUI: 最低需积分*, difference payable by cash/voucher). */
+    /** Minimum points required (GUI: min points required*, difference payable by cash/voucher). */
     @NotNull(message = "min points required must not be null")
     @Min(value = 1, message = "min points required must be positive")
     private Integer minPointsRequired;
 
-    /** Total stock (GUI: 总库存*). On create, remainingStock = totalStock (UC6). */
+    /** Total stock (GUI: total stock*). On create, remainingStock = totalStock (UC6). */
     @NotNull(message = "total stock must not be null")
     @Min(value = 1, message = "total stock must be positive")
     private Integer totalStock;

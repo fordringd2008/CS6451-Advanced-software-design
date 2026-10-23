@@ -14,16 +14,16 @@ import lombok.Data;
 @Data
 public class PointsAdjustDTO {
 
-    /** Target user business key (GUI: 输入目标用户 UID). */
+    /** Target user business key (GUI: enter target user UID). */
     @NotBlank(message = "uid must not be blank")
     private String uid;
 
-    /** Points to credit, positive integer only (GUI: 加分数量*, 正整数). */
+    /** Points to credit, positive integer only (GUI: points amount*, positive integer). */
     @NotNull(message = "points amount must not be null")
     @Min(value = 1, message = "points amount must be a positive integer")
     private Integer pointsAmount;
 
-    /** Adjustment reason, optional (GUI: 调整原因, 可选).
+    /** Adjustment reason, optional (GUI: reason, optional).
      * Note: only appears in GUI, not in candidate_objects/ER — kept here
      * as transport field; persistence of reason is deferred. */
     private String reason;

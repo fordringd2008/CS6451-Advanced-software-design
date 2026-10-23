@@ -27,7 +27,7 @@ import java.util.List;
  * @author Fordring
  * @since 1.0
  */
-@Tag(name = "UC4 积分规则", description = "Admin points rule management — use case 4")
+@Tag(name = "UC4 Points Rules", description = "Admin points rule management — use case 4")
 @RestController
 @RequestMapping("/api/admin/rules")
 public class PointsRuleController {
@@ -38,13 +38,13 @@ public class PointsRuleController {
         this.pointsRuleService = pointsRuleService;
     }
 
-    @Operation(summary = "规则列表", description = "All rules for the admin table (GUI 积分规则 tab)")
+    @Operation(summary = "Rule list", description = "All rules for the admin table (GUI points-rules tab)")
     @GetMapping
     public Result<List<RuleAdminVO>> list() {
         return Result.success(pointsRuleService.listRules());
     }
 
-    @Operation(summary = "规则详情", description = "Get one rule by business key")
+    @Operation(summary = "Rule detail", description = "Get one rule by business key")
     @GetMapping("/{prid}")
     public Result<RuleAdminVO> get(
             @Parameter(description = "Rule business key", example = "PR-L1")
@@ -52,13 +52,13 @@ public class PointsRuleController {
         return Result.success(pointsRuleService.getRuleByPrid(prid));
     }
 
-    @Operation(summary = "新增规则", description = "UC4 step 2-3 — validates type/threshold/ratio then saves")
+    @Operation(summary = "Create rule", description = "UC4 step 2-3 — validates type/threshold/ratio then saves")
     @PostMapping
     public Result<String> create(@Valid @RequestBody PointsRuleDTO dto) {
         return Result.success(pointsRuleService.createRule(dto));
     }
 
-    @Operation(summary = "编辑规则", description = "UC4 step 2-3 — validates then updates an existing rule")
+    @Operation(summary = "Edit rule", description = "UC4 step 2-3 — validates then updates an existing rule")
     @PutMapping("/{prid}")
     public Result<Void> update(
             @Parameter(description = "Rule business key", example = "PR-L1")
