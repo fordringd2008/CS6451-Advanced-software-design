@@ -41,6 +41,7 @@
             <div class="row"><span>Minimum Points</span><strong>${payment.minPointsRequired} pts</strong></div>
             <div class="row"><span>Available Balance</span><strong>${payment.availableBalance} pts</strong></div></div>
         <form class="card" method="post" action="${pageContext.request.contextPath}/guest/${uid}/redemptions">
+            <input type="hidden" name="pid" value="${payment.pid}">
             <h3>Choose Payment Method</h3>
             <c:forEach items="${payment.paymentMethods}" var="method" varStatus="status">
                 <label><input type="radio" name="pmid" value="${method.pmid}" ${status.first ? 'checked' : ''}>

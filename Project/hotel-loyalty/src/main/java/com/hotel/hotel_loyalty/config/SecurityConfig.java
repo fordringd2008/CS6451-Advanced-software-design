@@ -2,6 +2,8 @@ package com.hotel.hotel_loyalty.config;
 
 import com.hotel.hotel_loyalty.security.LoginFailureHandler;
 import com.hotel.hotel_loyalty.security.LoginSuccessHandler;
+import com.hotel.hotel_loyalty.security.PortalAwareAuthenticationEntryPoint;
+import com.hotel.hotel_loyalty.security.PortalAwareLogoutSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,11 +39,17 @@ public class SecurityConfig {
 
     private final LoginSuccessHandler loginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
+    private final PortalAwareAuthenticationEntryPoint authenticationEntryPoint;
+    private final PortalAwareLogoutSuccessHandler logoutSuccessHandler;
 
     public SecurityConfig(LoginSuccessHandler loginSuccessHandler,
-                          LoginFailureHandler loginFailureHandler) {
+                          LoginFailureHandler loginFailureHandler,
+                          PortalAwareAuthenticationEntryPoint authenticationEntryPoint,
+                          PortalAwareLogoutSuccessHandler logoutSuccessHandler) {
         this.loginSuccessHandler = loginSuccessHandler;
         this.loginFailureHandler = loginFailureHandler;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.logoutSuccessHandler = logoutSuccessHandler;
     }
 
     /**
@@ -90,7 +98,12 @@ public class SecurityConfig {
                 .permitAll())
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login"))
+                // Manager → /admin/login, guest → /login (role-aware)
+                .logoutSuccessHandler(logoutSuccessHandler))
+            // Unauthenticated users get the login page matching the portal
+            // they tried to reach (/admin/** → /admin/login, else → /login).
+            .exceptionHandling(eh -> eh
+                .authenticationEntryPoint(authenticationEntryPoint))
             .csrf(csrf -> csrf.disable())
             // H2 console uses an iframe; allow same-origin frames
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));

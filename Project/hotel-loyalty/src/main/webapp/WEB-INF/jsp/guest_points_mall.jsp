@@ -38,6 +38,7 @@
         <form action="${pageContext.request.contextPath}/logout" method="post" style="margin:0;"><button type="submit" class="nav-item" style="color:#A05B3C;background:none;border:none;font:inherit;width:100%;text-align:left;cursor:pointer;">Sign out</button></form>
     </nav>
     <main class="content">
+        <c:if test="${not empty errorMessage}"><div style="background:#fdecea;color:#b71c1c;border:1px solid #f5c6cb;padding:10px 14px;border-radius:6px;margin-bottom:14px;"><c:out value="${errorMessage}"/></div></c:if>
         <div class="header"><h2>Points Mall</h2>
             <span class="balance">Available Points:
                 <strong>${mall.currentPoint}</strong></span></div>

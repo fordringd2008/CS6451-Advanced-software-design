@@ -2,10 +2,12 @@ package com.hotel.hotel_loyalty.controller;
 
 import com.hotel.hotel_loyalty.dto.RedemptionRequest;
 import com.hotel.hotel_loyalty.service.GuestPointsService;
+import jakarta.validation.Valid;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,19 +102,38 @@ public class GuestJspController {
 
     /**
      * Processes the payment confirmation form and redirects to the points page.
+     * <p>
+     * Bean Validation failures and business errors (out of stock, insufficient
+     * points, optimistic-lock conflict) are caught here and shown to the guest
+     * as a flash message — {@code @RestControllerAdvice} does not cover
+     * {@code @Controller} view methods, so without this catch the guest would
+     * see a raw Whitelabel error page.
      *
      * @param uid guest business key
      * @param request submitted redemption form
+     * @param bindingResult validation outcome of the form binding
      * @param redirectAttributes redirect message container
-     * @return redirect to the guest points page
+     * @return redirect to my-points on success, back to points-mall on error
      */
     @PostMapping("/{uid}/redemptions")
-    public String redeem(@PathVariable String uid, @ModelAttribute RedemptionRequest request,
-                         RedirectAttributes redirectAttributes) {
+    public String redeem(@PathVariable String uid, @Valid @ModelAttribute RedemptionRequest request,
+                         BindingResult bindingResult, RedirectAttributes redirectAttributes) {
         checkOwnership(uid);
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldErrors().stream()
+                            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                            .reduce((a, b) -> a + "; " + b).orElse("invalid form data"));
+            return "redirect:/guest/" + uid + "/points-mall";
+        }
         request.setUid(uid);
-        String oid = guestPointsService.redeem(request);
-        redirectAttributes.addFlashAttribute("successMessage", "Payment confirmed. Order " + oid + " is paid.");
-        return "redirect:/guest/" + uid + "/my-points";
+        try {
+            String oid = guestPointsService.redeem(request);
+            redirectAttributes.addFlashAttribute("successMessage", "Payment confirmed. Order " + oid + " is paid.");
+            return "redirect:/guest/" + uid + "/my-points";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/guest/" + uid + "/points-mall";
+        }
     }
 }

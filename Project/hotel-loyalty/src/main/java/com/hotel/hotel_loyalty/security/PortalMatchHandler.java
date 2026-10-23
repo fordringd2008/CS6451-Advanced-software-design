@@ -4,10 +4,10 @@ package com.hotel.hotel_loyalty.security;
  * Chain node 2: the user's role must match the login portal.
  * <p>
  * Interrupt type. A guest on /admin/login (or a manager on /login)
- * gets a clear error message instead of a silent redirect.
- * This improves UX and adds defense in depth — the URL rules
- * in SecurityConfig would block them anyway, but here they
- * learn the reason immediately.
+ * is rejected with the same message as a bad password, so the
+ * login page simply shows "login failed" — it also avoids
+ * revealing that the account exists (security best practice,
+ * consistent with {@code LoginFailureHandler}).
  *
  * @author Fordring
  * @since 1.1
@@ -19,7 +19,7 @@ public class PortalMatchHandler extends LoginPostHandler {
         boolean isAdminPortal = "admin".equals(ctx.getPortal());
         boolean isManager = ctx.getRole() == 1;
         if (isAdminPortal != isManager) {
-            ctx.setErrorMessage("Wrong login portal for this role");
+            ctx.setErrorMessage("Invalid account or password");
             return false;
         }
         return true;
