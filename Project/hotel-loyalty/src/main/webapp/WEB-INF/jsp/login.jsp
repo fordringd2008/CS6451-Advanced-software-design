@@ -30,7 +30,7 @@
         <c:if test="${param.error != null and param.error != ''}">
             <div class="error">${param.error}</div>
         </c:if>
-        <form action="${pageContext.request.contextPath}/auth/login" method="post">
+        <form id="guest-login-form" action="${pageContext.request.contextPath}/auth/login" method="post">
             <input type="hidden" name="portal" value="guest"/>
             <label>Account</label>
             <input name="username" required autofocus/>
@@ -40,5 +40,13 @@
         </form>
         <p class="hint">Manager? <a class="admin-link" href="${pageContext.request.contextPath}/admin/login">Admin login</a></p>
     </div>
+    <script>
+        document.getElementById('guest-login-form').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.requestSubmit();
+            }
+        });
+    </script>
 </body>
 </html>

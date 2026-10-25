@@ -73,7 +73,7 @@
         <a class="nav-item active" href="/admin/products">Products</a>
         <a class="nav-item" href="/admin/rules">Points Rules</a>
         <a class="nav-item" href="/admin/points">Points Adjustment</a>
-        <form action="/logout" method="post" style="margin:0;"><button type="submit" class="nav-item" style="color:#A05B3C;background:none;border:none;font-family:inherit;width:100%;text-align:left;cursor:pointer;">Sign out</button></form>
+        <form action="/logout" method="post" style="margin:0;" onsubmit="return confirm('Are you sure you want to sign out?');"><button type="submit" class="nav-item" style="color:#A05B3C;background:none;border:none;font-family:inherit;width:100%;text-align:left;cursor:pointer;">Sign out</button></form>
     </div>
     <div class="content">
 
