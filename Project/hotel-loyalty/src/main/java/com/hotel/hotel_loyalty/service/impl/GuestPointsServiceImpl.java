@@ -19,6 +19,7 @@ import com.hotel.hotel_loyalty.payment.PaymentStrategy;
 import com.hotel.hotel_loyalty.payment.PaymentStrategyFactory;
 import com.hotel.hotel_loyalty.service.GuestPointsService;
 import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
+import com.hotel.hotel_loyalty.vo.AccountVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
 import com.hotel.hotel_loyalty.vo.PaymentMethodVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
@@ -84,6 +85,21 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         this.orderMapper = orderMapper;
         this.pointsTransactionMapper = pointsTransactionMapper;
         this.paymentStrategyFactory = paymentStrategyFactory;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AccountVO getAccount(String uid) {
+        UserDO user = findUser(uid);
+        AccountVO vo = new AccountVO();
+        vo.setUid(user.getUid());
+        vo.setName(user.getName());
+        vo.setRole(user.getRole());
+        vo.setStatus(user.getStatus());
+        vo.setLevelLabel("L" + user.getLevel());
+        vo.setCurrentPoint(user.getCurrentPoint());
+        vo.setRegisterTime(user.getRegisterTime());
+        return vo;
     }
 
     /** {@inheritDoc} */

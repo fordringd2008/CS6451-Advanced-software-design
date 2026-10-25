@@ -27,8 +27,8 @@
 <body>
     <div class="login-card">
         <h2>🏷️ Hotel Points — Guest Sign in</h2>
-        <c:if test="${not empty param.error}">
-            <div class="error"><c:out value="${param.error}"/></div>
+        <c:if test="${param.error != null and param.error != ''}">
+            <div class="error">${param.error}</div>
         </c:if>
         <form action="${pageContext.request.contextPath}/auth/login" method="post">
             <input type="hidden" name="portal" value="guest"/>

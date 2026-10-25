@@ -85,6 +85,21 @@ public class GuestJspController {
     }
 
     /**
+     * Renders the authenticated guest's account details page.
+     *
+     * @param uid guest business key
+     * @param model MVC model
+     * @return account details JSP view
+     */
+    @GetMapping("/{uid}/account")
+    public String account(@PathVariable String uid, Model model) {
+        checkOwnership(uid);
+        model.addAttribute("uid", uid);
+        model.addAttribute("account", guestPointsService.getAccount(uid));
+        return "guest_account";
+    }
+
+    /**
      * Renders the server-side payment confirmation page.
      *
      * @param uid guest business key

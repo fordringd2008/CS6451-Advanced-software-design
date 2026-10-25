@@ -7,6 +7,7 @@ import com.hotel.hotel_loyalty.security.PortalAwareAuthenticationEntryPoint;
 import com.hotel.hotel_loyalty.security.PortalAwareLogoutSuccessHandler;
 import com.hotel.hotel_loyalty.service.GuestPointsService;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
+import com.hotel.hotel_loyalty.vo.AccountVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ class GuestJspControllerTest {
     void stubQueryMethods() {
         when(guestPointsService.getPointsMall("guest")).thenReturn(new PointsMallVO());
         when(guestPointsService.getMyPoints("guest")).thenReturn(new MyPointsVO());
+        when(guestPointsService.getAccount("guest")).thenReturn(new AccountVO());
     }
 
     @Test
@@ -82,6 +84,20 @@ class GuestJspControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("guest_my_points"))
                 .andExpect(model().attributeExists("points"));
+    }
+
+    @Test
+    void testAccount_whenOwnerMatches_shouldReturnView() throws Exception {
+        mockMvc.perform(get("/guest/guest/account").with(user("guest").roles("GUEST")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("guest_account"))
+                .andExpect(model().attributeExists("account"));
+    }
+
+    @Test
+    void testAccount_whenUidMismatch_shouldBeForbidden() throws Exception {
+        mockMvc.perform(get("/guest/alice/account").with(user("guest").roles("GUEST")))
+                .andExpect(status().isForbidden());
     }
 
     @Test

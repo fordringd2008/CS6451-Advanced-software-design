@@ -2,6 +2,7 @@ package com.hotel.hotel_loyalty.service;
 
 import com.hotel.hotel_loyalty.dto.RedemptionRequest;
 import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
+import com.hotel.hotel_loyalty.vo.AccountVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 
@@ -12,6 +13,14 @@ import com.hotel.hotel_loyalty.vo.PointsMallVO;
  * @since 1.0
  */
 public interface GuestPointsService {
+
+    /**
+     * Loads the authenticated guest's account details.
+     *
+     * @param uid guest business key
+     * @return account details
+     */
+    AccountVO getAccount(String uid);
 
     /**
      * Loads the guest's points mall.

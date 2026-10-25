@@ -35,6 +35,7 @@
     <nav class="sidebar">
         <a class="nav-item" href="${pageContext.request.contextPath}/guest/${uid}/points-mall">Points Mall</a>
         <a class="nav-item active" href="${pageContext.request.contextPath}/guest/${uid}/my-points">My Points</a>
+        <a class="nav-item" href="${pageContext.request.contextPath}/guest/${uid}/account">Account</a>
         <form action="${pageContext.request.contextPath}/logout" method="post" style="margin:0;"><button type="submit" class="nav-item" style="color:#A05B3C;background:none;border:none;font:inherit;width:100%;text-align:left;cursor:pointer;">Sign out</button></form>
     </nav>
     <main class="content">

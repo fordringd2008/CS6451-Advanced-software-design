@@ -4,6 +4,7 @@ import com.hotel.hotel_loyalty.common.Result;
 import com.hotel.hotel_loyalty.dto.RedemptionRequest;
 import com.hotel.hotel_loyalty.service.GuestPointsService;
 import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
+import com.hotel.hotel_loyalty.vo.AccountVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,6 +76,13 @@ public class GuestPointsController {
     public Result<MyPointsVO> myPoints(@PathVariable @NotBlank String uid) {
         checkOwnership(uid);
         return Result.success(guestPointsService.getMyPoints(uid));
+    }
+
+    @Operation(summary = "Load account details")
+    @GetMapping("/{uid}/account")
+    public Result<AccountVO> account(@PathVariable @NotBlank String uid) {
+        checkOwnership(uid);
+        return Result.success(guestPointsService.getAccount(uid));
     }
 
     @Operation(summary = "Load payment confirmation")
