@@ -29,6 +29,12 @@ public interface ProductMapper {
             + "FROM product ORDER BY id")
     List<ProductDO> selectAll();
 
+    /** Products available for guest redemption (UC3 step 1-2: remainingStock > 0). */
+    @Select("SELECT id, pid, name, image_url, total_points_required, min_points_required, "
+            + "total_stock, remaining_stock, gmt_create, gmt_modified "
+            + "FROM product WHERE remaining_stock > 0 ORDER BY id")
+    List<ProductDO> selectAvailable();
+
     @Insert("INSERT INTO product (pid, name, image_url, total_points_required, min_points_required, "
             + "total_stock, remaining_stock, gmt_create, gmt_modified) "
             + "VALUES (#{pid}, #{name}, #{imageUrl}, #{totalPointsRequired}, #{minPointsRequired}, "

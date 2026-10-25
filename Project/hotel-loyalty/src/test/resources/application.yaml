@@ -4,3 +4,10 @@ spring:
   sql:
     init:
       data-locations: classpath:/data.sql
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

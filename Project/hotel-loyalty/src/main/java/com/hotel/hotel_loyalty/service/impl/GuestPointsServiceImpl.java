@@ -92,7 +92,7 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         UserDO user = findUser(uid);
         PointsMallVO vo = new PointsMallVO();
         vo.setCurrentPoint(user.getCurrentPoint());
-        vo.setProducts(productMapper.selectAll().stream().map(this::toProductVO).toList());
+        vo.setProducts(productMapper.selectAvailable().stream().map(this::toProductVO).toList());
         return vo;
     }
 

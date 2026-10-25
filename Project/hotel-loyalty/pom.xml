@@ -109,6 +109,18 @@
 			<version>4.0.1</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- Spring Boot 4: AutoConfigureTestDatabase moved from spring-boot-test-autoconfigure to spring-boot-jdbc-test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jdbc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- @WithMockUser for @WebMvcTest security tests -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>artemis-jakarta-server</artifactId>
