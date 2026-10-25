@@ -28,4 +28,7 @@ public class MyPointsVO {
 
     /** Recent redemption records shown below the points card. */
     private List<RedemptionRecordVO> redemptions;
+
+    /** Points history audit log (GUI: Points History tab). */
+    private List<PointsHistoryVO> history;
 }

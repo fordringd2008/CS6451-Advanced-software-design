@@ -2,6 +2,7 @@ package com.hotel.hotel_loyalty.service.impl;
 
 import com.hotel.hotel_loyalty.domain.OrderDO;
 import com.hotel.hotel_loyalty.domain.PaymentMethodDO;
+import com.hotel.hotel_loyalty.domain.PointsTransactionDO;
 import com.hotel.hotel_loyalty.domain.ProductDO;
 import com.hotel.hotel_loyalty.domain.UserDO;
 import com.hotel.hotel_loyalty.dto.RedemptionRequest;
@@ -96,8 +97,8 @@ class GuestPointsServiceImplTest {
     }
 
     @Test
-    void testGetMyPoints_whenUserExists_shouldReturnPointsAndRedemptions() {
-        // given
+    void testGetMyPoints_whenUserExists_shouldReturnPointsRedemptionsAndHistory() {
+        // given — a guest with one paid redemption and two transactions (earn + redeem)
         when(userMapper.selectByUid("guest")).thenReturn(user("guest", 4200));
         OrderDO order = new OrderDO();
         order.setOid("O-TEST1");
@@ -107,14 +108,38 @@ class GuestPointsServiceImplTest {
         order.setGmtCreate(now);
         when(orderMapper.selectByUid("guest")).thenReturn(List.of(order));
         when(productMapper.selectByPid("P-003")).thenReturn(product("P-003", 199));
+        PointsTransactionDO earn = new PointsTransactionDO();
+        earn.setPtid("PT-EARN01");
+        earn.setType("EARN");
+        earn.setPointsChange(200);
+        earn.setRelatedOrderId(null);
+        earn.setGmtCreate(now);
+        PointsTransactionDO redeem = new PointsTransactionDO();
+        redeem.setPtid("PT-REDEEM01");
+        redeem.setType("REDEEM");
+        redeem.setPointsChange(-800);
+        redeem.setRelatedOrderId("O-TEST1");
+        redeem.setGmtCreate(now);
+        when(pointsTransactionMapper.selectByUid("guest")).thenReturn(List.of(redeem, earn));
         // when
         MyPointsVO vo = service.getMyPoints("guest");
-        // then
+        // then — header + redemption mapping (incl. status label)
         assertThat(vo.getName()).isEqualTo("test guest");
         assertThat(vo.getLevelLabel()).isEqualTo("L2");
         assertThat(vo.getCurrentPoint()).isEqualTo(4200);
         assertThat(vo.getRedemptions()).hasSize(1);
         assertThat(vo.getRedemptions().get(0).getProductName()).isEqualTo("product P-003");
+        assertThat(vo.getRedemptions().get(0).getStatusLabel()).isEqualTo("Paid");
+        // then — history mapping preserves order, type, signed delta and related order
+        assertThat(vo.getHistory()).hasSize(2);
+        assertThat(vo.getHistory().get(0).getPtid()).isEqualTo("PT-REDEEM01");
+        assertThat(vo.getHistory().get(0).getType()).isEqualTo("REDEEM");
+        assertThat(vo.getHistory().get(0).getPointsChange()).isEqualTo(-800);
+        assertThat(vo.getHistory().get(0).getRelatedOrderId()).isEqualTo("O-TEST1");
+        assertThat(vo.getHistory().get(1).getPtid()).isEqualTo("PT-EARN01");
+        assertThat(vo.getHistory().get(1).getType()).isEqualTo("EARN");
+        assertThat(vo.getHistory().get(1).getPointsChange()).isEqualTo(200);
+        assertThat(vo.getHistory().get(1).getRelatedOrderId()).isNull();
     }
 
     @Test

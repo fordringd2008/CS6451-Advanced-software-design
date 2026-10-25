@@ -24,6 +24,14 @@
         td { padding: 10px; border-top: 1px solid #F5EBDD; font-size: 13px; }
         .success { background: #E7F0DF; color: #5A7A4A; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
         .empty { text-align: center; padding: 25px; color: #96785A; }
+        .earn { color: #5A7A4A; font-weight: 600; }
+        .redeem { color: #B0614A; font-weight: 600; }
+        .tabs { display: flex; margin-top: 16px; border-bottom: 1px solid #EAD9C2; }
+        .tab { flex: 1; text-align: center; padding: 11px 0; font-size: 13px;
+            color: #96785A; text-decoration: none; border-bottom: 2px solid transparent;
+            cursor: pointer; }
+        .tab.active { color: #C08B5C; font-weight: bold; border-bottom-color: #C08B5C; }
+        .tab:hover:not(.active) { color: #C08B5C; }
         @media (max-width: 700px) { .layout { display: block; } .sidebar { width: auto; display: flex; }
             .nav-item { padding: 12px; } .content { padding: 16px; } .summary { display: block; }
             .card { margin-bottom: 12px; } table { overflow-x: auto; display: block; } }
@@ -47,16 +55,43 @@
             <div class="card"><span class="label">Available Points</span><span class="value">${points.currentPoint} pts</span></div>
         </div>
         <p>Registered: ${points.registerTime}</p>
-        <h2>My Redemptions</h2>
-        <c:choose>
-            <c:when test="${empty points.redemptions}"><div class="empty">No redemptions yet.</div></c:when>
-            <c:otherwise><table><thead><tr><th>Order</th><th>Product</th><th>Points Used</th><th>Status</th><th>Date</th></tr></thead>
-                <tbody><c:forEach items="${points.redemptions}" var="record"><tr>
-                    <td><c:out value="${record.oid}"/></td><td><c:out value="${record.productName}"/></td>
-                    <td>-${record.pointsUsed} pts</td><td>${record.status}</td><td>${record.gmtCreate}</td>
-                </tr></c:forEach></tbody></table></c:otherwise>
-        </c:choose>
+        <div class="tabs">
+            <a class="tab" data-tab="history" href="javascript:void(0)" onclick="showTab('history')">Points History</a>
+            <a class="tab active" data-tab="redemptions" href="javascript:void(0)" onclick="showTab('redemptions')">My Redemptions</a>
+        </div>
+        <section id="tab-history" style="display:none">
+            <c:choose>
+                <c:when test="${empty points.history}"><div class="empty">No points history yet.</div></c:when>
+                <c:otherwise><table><thead><tr><th>Transaction</th><th>Type</th><th>Points Change</th><th>Related Order</th><th>Date</th></tr></thead>
+                    <tbody><c:forEach items="${points.history}" var="txn"><tr>
+                        <td><c:out value="${txn.ptid}"/></td>
+                        <td><c:out value="${txn.type}"/></td>
+                        <td><c:choose><c:when test="${txn.pointsChange >= 0}"><span class="earn">+${txn.pointsChange} pts</span></c:when><c:otherwise><span class="redeem">${txn.pointsChange} pts</span></c:otherwise></c:choose></td>
+                        <td><c:choose><c:when test="${not empty txn.relatedOrderId}"><c:out value="${txn.relatedOrderId}"/></c:when><c:otherwise>—</c:otherwise></c:choose></td>
+                        <td>${txn.gmtCreate}</td>
+                    </tr></c:forEach></tbody></table></c:otherwise>
+            </c:choose>
+        </section>
+        <section id="tab-redemptions">
+            <c:choose>
+                <c:when test="${empty points.redemptions}"><div class="empty">No redemptions yet.</div></c:when>
+                <c:otherwise><table><thead><tr><th>Order</th><th>Product</th><th>Points Used</th><th>Status</th><th>Date</th></tr></thead>
+                    <tbody><c:forEach items="${points.redemptions}" var="record"><tr>
+                        <td><c:out value="${record.oid}"/></td><td><c:out value="${record.productName}"/></td>
+                        <td>-${record.pointsUsed} pts</td><td><c:out value="${record.statusLabel}"/></td><td>${record.gmtCreate}</td>
+                    </tr></c:forEach></tbody></table></c:otherwise>
+            </c:choose>
+        </section>
     </main>
 </div>
+<script>
+    function showTab(name) {
+        document.querySelectorAll('.tab').forEach(function (t) {
+            t.classList.toggle('active', t.dataset.tab === name);
+        });
+        document.getElementById('tab-history').style.display = name === 'history' ? '' : 'none';
+        document.getElementById('tab-redemptions').style.display = name === 'redemptions' ? '' : 'none';
+    }
+</script>
 </body>
 </html>

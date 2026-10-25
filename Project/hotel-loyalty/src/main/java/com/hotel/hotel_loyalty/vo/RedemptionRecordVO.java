@@ -36,6 +36,9 @@ public class RedemptionRecordVO {
     /** Order status code — see {@link com.hotel.hotel_loyalty.enums.OrderStatusEnum}. */
     private Integer status;
 
+    /** Human-readable status label (e.g. "Paid") — derived from the code at mapping time. */
+    private String statusLabel;
+
     /** Order creation time (GUI: "2025-10-14"). */
     private LocalDateTime gmtCreate;
 }

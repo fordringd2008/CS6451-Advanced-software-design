@@ -21,3 +21,7 @@ cookies_*.txt
 h2cookie.txt
 h2resp.txt
 csrf.txt
+diff_review.txt
+mall*.html
+mypoints*.html
+confirm.html

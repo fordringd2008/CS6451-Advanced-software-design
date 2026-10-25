@@ -22,6 +22,7 @@ import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
 import com.hotel.hotel_loyalty.vo.AccountVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
 import com.hotel.hotel_loyalty.vo.PaymentMethodVO;
+import com.hotel.hotel_loyalty.vo.PointsHistoryVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 import com.hotel.hotel_loyalty.vo.ProductVO;
 import com.hotel.hotel_loyalty.vo.RedemptionRecordVO;
@@ -122,6 +123,7 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         vo.setCurrentPoint(user.getCurrentPoint());
         vo.setRegisterTime(user.getRegisterTime());
         vo.setRedemptions(orderMapper.selectByUid(uid).stream().map(this::toRedemptionVO).toList());
+        vo.setHistory(pointsTransactionMapper.selectByUid(uid).stream().map(this::toHistoryVO).toList());
         return vo;
     }
 
@@ -284,7 +286,25 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         vo.setCashUsed(order.getCashUsed());
         vo.setVoucherUsed(order.getVoucherUsed());
         vo.setStatus(order.getStatus());
+        OrderStatusEnum statusEnum = OrderStatusEnum.fromCode(order.getStatus());
+        vo.setStatusLabel(statusEnum != null ? statusEnum.getDescription() : "Unknown");
         vo.setGmtCreate(order.getGmtCreate());
+        return vo;
+    }
+
+    /**
+     * Converts a points transaction data object into a history view object.
+     *
+     * @param txn points transaction data object
+     * @return points history view object
+     */
+    private PointsHistoryVO toHistoryVO(PointsTransactionDO txn) {
+        PointsHistoryVO vo = new PointsHistoryVO();
+        vo.setPtid(txn.getPtid());
+        vo.setType(txn.getType());
+        vo.setPointsChange(txn.getPointsChange());
+        vo.setRelatedOrderId(txn.getRelatedOrderId());
+        vo.setGmtCreate(txn.getGmtCreate());
         return vo;
     }
 }
