@@ -16,6 +16,7 @@ import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.when;
 /**
  * Pure unit tests for {@link GuestPointsServiceImpl} — query and fast-fail
  * validation paths. Full redeem chain is covered separately by the
- * integration test. No Spring context: all six dependencies are mocks.
+ * integration test. No Spring context: all seven dependencies are mocks.
  *
  * @author Fordring
  * @since 1.0
@@ -46,9 +47,10 @@ class GuestPointsServiceImplTest {
     private final OrderMapper orderMapper = mock(OrderMapper.class);
     private final PointsTransactionMapper pointsTransactionMapper = mock(PointsTransactionMapper.class);
     private final PaymentStrategyFactory paymentStrategyFactory = mock(PaymentStrategyFactory.class);
+    private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
     private final GuestPointsServiceImpl service = new GuestPointsServiceImpl(
             userMapper, productMapper, paymentMethodMapper, orderMapper,
-            pointsTransactionMapper, paymentStrategyFactory);
+            pointsTransactionMapper, paymentStrategyFactory, eventPublisher);
 
     private final LocalDateTime now = LocalDateTime.of(2026, 10, 25, 0, 0, 0);
 
