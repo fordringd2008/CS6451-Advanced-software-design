@@ -1,0 +1,56 @@
+name: Release
+
+# Trigger: only when a version tag (v1.0, v1.1, ...) is pushed.
+# Daily pushes to develop are handled by ci.yml; this workflow
+# runs only for releases (Continuous Delivery).
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Required to create a GitHub Release and upload assets
+    permissions:
+      contents: write
+
+    steps:
+      # 1. Pull the code onto the runner
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Install JDK 21 (Temurin, same as local dev)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # 3. Cache Maven dependencies (speeds up later runs)
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('Project/hotel-loyalty/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      # 4. Make the Maven wrapper executable
+      - name: Grant execute permission for mvnw
+        run: chmod +x Project/hotel-loyalty/mvnw
+
+      # 5. Compile, run all tests, and package the executable JAR
+      - name: Build and test
+        working-directory: Project/hotel-loyalty
+        run: ./mvnw -B verify
+
+      # 6. Create a GitHub Release and attach the JAR
+      - name: Create GitHub Release and upload JAR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          JAR=$(find Project/hotel-loyalty/target -name '*.jar' \
+                ! -name '*-sources.jar' ! -name '*-javadoc.jar' -print -quit)
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            "$JAR"
