@@ -27,7 +27,9 @@ import com.hotel.hotel_loyalty.vo.PaymentMethodVO;
 import com.hotel.hotel_loyalty.vo.PointsHistoryVO;
 import com.hotel.hotel_loyalty.vo.PointsMallVO;
 import com.hotel.hotel_loyalty.vo.ProductVO;
+import com.hotel.hotel_loyalty.messaging.PointsDeductedEvent;
 import com.hotel.hotel_loyalty.vo.RedemptionRecordVO;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +69,8 @@ public class GuestPointsServiceImpl implements GuestPointsService {
     private final PointsTransactionMapper pointsTransactionMapper;
     /** Payment strategy resolver. */
     private final PaymentStrategyFactory paymentStrategyFactory;
+    /** In-process event publisher (architecture document 5.0 — Event-Driven). */
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Creates the guest points service.
@@ -77,17 +81,20 @@ public class GuestPointsServiceImpl implements GuestPointsService {
      * @param orderMapper order data access object
      * @param pointsTransactionMapper points transaction data access object
      * @param paymentStrategyFactory payment strategy resolver
+     * @param eventPublisher in-process event publisher
      */
     public GuestPointsServiceImpl(UserMapper userMapper, ProductMapper productMapper,
                                   PaymentMethodMapper paymentMethodMapper, OrderMapper orderMapper,
                                   PointsTransactionMapper pointsTransactionMapper,
-                                  PaymentStrategyFactory paymentStrategyFactory) {
+                                  PaymentStrategyFactory paymentStrategyFactory,
+                                  ApplicationEventPublisher eventPublisher) {
         this.userMapper = userMapper;
         this.productMapper = productMapper;
         this.paymentMethodMapper = paymentMethodMapper;
         this.orderMapper = orderMapper;
         this.pointsTransactionMapper = pointsTransactionMapper;
         this.paymentStrategyFactory = paymentStrategyFactory;
+        this.eventPublisher = eventPublisher;
     }
 
     /** {@inheritDoc} */
@@ -215,6 +222,11 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         transaction.setGmtCreate(now);
         transaction.setGmtModified(now);
         pointsTransactionMapper.insert(transaction);
+
+        // Notify listeners (e.g. RewardDistributionListener) that points were
+        // deducted for this order — Event-Driven Architecture (document 5.0).
+        eventPublisher.publishEvent(
+                new PointsDeductedEvent(oid, request.getUid(), request.getPid(), request.getPointsUsed()));
         return oid;
     }
 
