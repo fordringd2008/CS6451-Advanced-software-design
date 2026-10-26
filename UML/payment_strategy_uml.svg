@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+  <style>
+    text { font-family: Arial, sans-serif; fill: #3d3024; }
+    .title { font-size: 24px; font-weight: bold; }
+    .head { font-size: 16px; font-weight: bold; }
+    .body { font-size: 14px; }
+    .box { fill: #fffaf3; stroke: #8b6f47; stroke-width: 2; }
+    .interface { fill: #e2eee4; }
+    .factory { fill: #f5e1c8; }
+    .line { stroke: #6f5639; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+    .realize { stroke-dasharray: 8 6; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#6f5639"/>
+    </marker>
+  </defs>
+  <text x="550" y="36" text-anchor="middle" class="title">Payment Strategy Pattern</text>
+  <rect x="380" y="65" width="340" height="125" class="box interface"/>
+  <text x="550" y="91" text-anchor="middle" class="head">&lt;&lt;interface&gt;&gt;</text>
+  <text x="550" y="116" text-anchor="middle" class="head">PaymentStrategy</text>
+  <line x1="400" y1="128" x2="700" y2="128" stroke="#8b6f47"/>
+  <text x="400" y="153" class="body">+ getSupportedType()</text>
+  <text x="400" y="176" class="body">+ validate(PaymentRequest)</text>
+  <rect x="55" y="300" width="275" height="150" class="box"/>
+  <text x="192" y="328" text-anchor="middle" class="head">PointsOnlyStrategy</text>
+  <line x1="75" y1="340" x2="310" y2="340" stroke="#8b6f47"/>
+  <text x="75" y="367" class="body">PM-1</text>
+  <text x="75" y="392" class="body">Full points validation</text>
+  <text x="75" y="417" class="body">No supplement</text>
+  <rect x="412" y="300" width="275" height="150" class="box"/>
+  <text x="550" y="328" text-anchor="middle" class="head">PointsPlusCashStrategy</text>
+  <line x1="432" y1="340" x2="667" y2="340" stroke="#8b6f47"/>
+  <text x="432" y="367" class="body">PM-2</text>
+  <text x="432" y="392" class="body">Minimum points validation</text>
+  <text x="432" y="417" class="body">Remaining value as cash</text>
+  <rect x="770" y="300" width="275" height="150" class="box"/>
+  <text x="907" y="328" text-anchor="middle" class="head">PointsPlusVoucherStrategy</text>
+  <line x1="790" y1="340" x2="1025" y2="340" stroke="#8b6f47"/>
+  <text x="790" y="367" class="body">PM-3</text>
+  <text x="790" y="392" class="body">Minimum points validation</text>
+  <text x="790" y="417" class="body">Remaining value as voucher</text>
+  <rect x="380" y="510" width="340" height="90" class="box factory"/>
+  <text x="550" y="540" text-anchor="middle" class="head">PaymentStrategyFactory</text>
+  <text x="550" y="568" text-anchor="middle" class="body">selects one strategy by PaymentTypeEnum</text>
+  <path d="M465 190 L220 300" class="line realize"/>
+  <path d="M550 190 L550 300" class="line realize"/>
+  <path d="M635 190 L880 300" class="line realize"/>
+  <path d="M550 510 L550 450" class="line"/>
+</svg>

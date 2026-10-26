@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <style>
+    text { font-family: Arial, sans-serif; fill: #3d3024; }
+    .title { font-size: 24px; font-weight: bold; }
+    .head { font-size: 16px; font-weight: bold; }
+    .body { font-size: 14px; }
+    .box { fill: #fffaf3; stroke: #8b6f47; stroke-width: 2; }
+    .queue { fill: #f5e1c8; }
+    .note { fill: #e2eee4; stroke: #66836b; stroke-width: 2; }
+    .arrow { stroke: #6f5639; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    .dashed { stroke-dasharray: 8 6; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#6f5639"/>
+    </marker>
+  </defs>
+  <text x="600" y="36" text-anchor="middle" class="title">UC5 Message-Driven Points Adjustment</text>
+  <rect x="50" y="95" width="190" height="100" class="box"/>
+  <text x="145" y="125" text-anchor="middle" class="head">Manager UI</text>
+  <text x="145" y="153" text-anchor="middle" class="body">POST adjustment</text>
+  <text x="145" y="176" text-anchor="middle" class="body">authenticated manager</text>
+  <rect x="300" y="95" width="220" height="100" class="box"/>
+  <text x="410" y="125" text-anchor="middle" class="head">Adjustment Service</text>
+  <text x="410" y="153" text-anchor="middle" class="body">validates user/status</text>
+  <text x="410" y="176" text-anchor="middle" class="body">enqueues message</text>
+  <rect x="600" y="75" width="260" height="140" class="box queue"/>
+  <text x="730" y="108" text-anchor="middle" class="head">Embedded Artemis</text>
+  <text x="730" y="137" text-anchor="middle" class="head">queue.points.adjustment</text>
+  <text x="730" y="169" text-anchor="middle" class="body">persistent message delivery</text>
+  <text x="730" y="193" text-anchor="middle" class="body">broker owns pending work</text>
+  <rect x="940" y="95" width="210" height="100" class="box"/>
+  <text x="1045" y="125" text-anchor="middle" class="head">JMS Consumer</text>
+  <text x="1045" y="153" text-anchor="middle" class="body">@JmsListener</text>
+  <text x="1045" y="176" text-anchor="middle" class="body">processes message</text>
+  <rect x="790" y="350" width="320" height="120" class="box"/>
+  <text x="950" y="380" text-anchor="middle" class="head">Atomic application work</text>
+  <text x="950" y="410" text-anchor="middle" class="body">compareAndUpdatePoint</text>
+  <text x="950" y="434" text-anchor="middle" class="body">insert PointsTransactionDO</text>
+  <rect x="125" y="350" width="500" height="120" class="note"/>
+  <text x="375" y="380" text-anchor="middle" class="head">Failure and delivery guarantees</text>
+  <text x="150" y="410" class="body">• persistent Artemis queue survives temporary processing failure</text>
+  <text x="150" y="434" class="body">• listener exception rolls back and triggers redelivery</text>
+  <text x="150" y="458" class="body">• optimistic-lock conflict throws to retry with fresh balance</text>
+  <path d="M240 145 L300 145" class="arrow"/>
+  <path d="M520 145 L600 145" class="arrow"/>
+  <path d="M860 145 L940 145" class="arrow"/>
+  <path d="M1045 195 L1045 350" class="arrow"/>
+  <path d="M940 410 L625 410" class="arrow dashed"/>
+  <text x="785" y="335" class="body">exception / redelivery</text>
+</svg>
