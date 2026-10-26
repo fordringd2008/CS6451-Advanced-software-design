@@ -9,7 +9,7 @@
 **Version:** `0.0.1-SNAPSHOT`  
 **Java:** 21  
 **Build:** Maven  
-**Last reviewed:** 24 October 2026
+**Last reviewed:** 26 October 2026
 
 ---
 
@@ -29,6 +29,21 @@ The implementation also demonstrates several software-design techniques:
 3. **State pattern**: order lifecycle states are represented by the classes in the `order` package.
 4. **Message-driven processing**: manual point adjustments are sent to an embedded Artemis queue and processed asynchronously.
 5. **Optimistic concurrency control**: point balances and stock are updated with compare-and-update operations.
+
+### Architecture diagrams
+
+The implemented package flow is shown in [`layered_architecture.svg`](UML/layered_architecture.svg).
+
+The payment design is a **Strategy pattern**, shown in [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg).
+It is not a Chain of Responsibility: `PaymentStrategyFactory` selects exactly one strategy from
+`PaymentTypeEnum`, and strategies do not pass an unhandled request to one another. The controller and
+service call the selected strategy directly.
+
+The asynchronous points-adjustment flow and its reliability controls are shown in
+[`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg). The manager request
+is validated and placed on the persistent `queue.points.adjustment` Artemis queue. The listener updates
+the user balance and writes the transaction. An exception rolls back processing and causes redelivery;
+the optimistic compare-and-update also turns concurrent balance conflicts into retryable failures.
 
 This report describes the implemented system rather than the original conceptual model. Where a use case or UML artifact describes planned behavior that is not yet connected to the running code, it is explicitly marked as a gap.
 
@@ -56,14 +71,27 @@ The main business invariants are:
 
 The use-case catalogue contains six primary use cases.
 
+![Use-case diagram](UML/all_user_case.svg)
+
 | ID | Use case | Current implementation |
 |---|---|---|
-| UC1 | Guest login and personal account information | **Partially implemented** |
-| UC2 | View points transaction details | **Not complete** |
-| UC3 | Redeem points for products in the points mall | **Core flow implemented** |
-| UC4 | Manager manages points rules | **CRUD implemented; calculation integration pending** |
-| UC5 | Manager manually adds points | **Implemented with asynchronous queue processing** |
-| UC6 | Manager manages products | **CRUD and main validation implemented** |
+| UC1 | Guest login and personal account information | **[已实现]** Login, session identity, user ID, name, role, status, level, balance, registration time, and account page are implemented |
+| UC2 | View points transaction details | **[已实现]** My Points displays signed history, type, related order, timestamp, and redemption orders |
+| UC3 | Redeem points for products in the points mall | **[已实现（模拟支付范围）]** Points, simulated cash, and simulated voucher flows validate and persist orders |
+| UC4 | Manager manages points rules | **[部分实现 / 重点未实现]** Rule CRUD works; **没有接入酒店订单的实际积分计算和发放流程** |
+| UC5 | Manager manually adds points | **[核心已实现 / 部分实现]** Persistent queue, consumer, retry, balance update, and EARN transaction work; **队列状态、死信处理、请求状态查询和原因持久化未实现** |
+| UC6 | Manager manages products | **[核心已实现 / 部分实现]** Product CRUD and validation work; **积分商城没有向用户完整展示库存状态，库存可用性展示仍需增强** |
+
+### Implementation status at a glance
+
+The following items are the **重点未实现或不完整功能** and should not be described as fully delivered:
+
+- **UC1:** No known missing item within the current use-case scope. The account page exposes every field currently stored for the user: ID, name, role, status, level, current points, and registration time.
+- **UC3:** No missing item within the agreed prototype scope. Cash and voucher are intentionally simulated; real provider integration is explicitly out of scope.
+- **UC4 — Rule execution:** managers can maintain rules, but no hotel-order earning event selects a rule and calculates/awards points.
+- **UC5 — Operational queue management:** there is no user-facing queued/processed/retrying/failed status, durable request ID, dead-letter administration, or persisted adjustment reason.
+- **UC6 — Availability presentation:** the backend filters available products, but the guest-facing product view does not expose a complete stock/availability state for every product.
+- **Order lifecycle orchestration:** order state classes exist, but the redemption service currently persists status transitions directly; cancellation, fulfilment, and shipment workflows are not implemented.
 
 ### UC1 - Login and account information
 
@@ -72,11 +100,11 @@ The application provides separate login pages:
 - `/login` for guests
 - `/admin/login` for managers
 
-Authentication uses Spring Security sessions and BCrypt passwords. The current guest points page displays the guest name, level, balance, registration time, and redemption records. A separate complete account-information view containing every field from the original use case is not currently implemented.
+Authentication uses Spring Security sessions and BCrypt passwords. The current guest points page displays the guest name, level, balance, registration time, and redemption records. The account page exposes all stored account fields: user ID, name, role, status, membership level, current points, and registration time. **UC1 is complete for the current data model and viewing scope.**
 
 ### UC2 - Points transaction details
 
-The database and mapper support transaction history through `PointsTransactionMapper.selectByUid`. Redemption and manual-award flows also create `PointsTransactionDO` records. However, the current `MyPointsVO` and `guest_my_points.jsp` display redemption orders rather than the complete signed transaction history. A complete UC2 implementation should expose:
+The database and mapper support transaction history through `PointsTransactionMapper.selectByUid`. Redemption and manual-award flows also create `PointsTransactionDO` records. `MyPointsVO` and `guest_my_points.jsp` expose the complete signed transaction history in the Points History tab:
 
 - transaction date;
 - positive or negative points change;
@@ -93,7 +121,12 @@ The guest redemption flow is implemented by `GuestPointsServiceImpl`:
 4. Atomically deduct points with an optimistic balance check.
 5. Deduct one unit of product stock.
 6. Mark the order as paid.
-7. Insert a negative points transaction.
+7. Insert a negative points transaction linked to the order.
+
+The My Redemptions tab reads the same paid order records through `OrderMapper.selectByUid`, so
+points-only, cash, and voucher redemptions are all represented after successful completion.
+
+![Redemption sequence diagram](UML/redeem_points_for_products.svg)
 
 The supported payment strategies are:
 
@@ -101,17 +134,21 @@ The supported payment strategies are:
 - points plus cash;
 - points plus voucher.
 
+The cash and voucher interactions are intentionally simulated for this academic prototype.
+Real external payment authorization, capture, refund, timeout reconciliation, and provider-failure
+handling are **out of scope**, not incomplete implementation work.
+
 ### UC4 - Manage points rules
 
 Managers can list, create, and update rules. The service validates rule type and the time range for period rules. Level rules clear the threshold because they do not use a minimum external order amount.
 
-The rule data is currently stored and managed, but no external hotel-order earning process in this application consumes the rules to calculate newly earned points. The management part of UC4 is therefore implemented; the subsequent calculation integration remains future work.
+The rule data is currently stored and managed, but no external hotel-order earning process in this application consumes the rules to calculate newly earned points. The management part of UC4 is therefore implemented; **the subsequent calculation and award integration is not implemented**.
 
 ### UC5 - Manually add points
 
 Managers verify a target user, enter a positive point amount, and optionally provide a reason. The request is sent to the persistent Artemis queue. `PointsAdjustmentConsumer` updates the balance and creates an `EARN` transaction. Exceptions cause message redelivery, providing automatic retry behavior.
 
-The optional reason is currently written to the application log rather than persisted in `points_transaction`, whose schema has no reason column.
+The optional reason is currently written to the application log rather than persisted in `points_transaction`, whose schema has no reason column. **There is also no queue-status API, durable request ID, dead-letter administration, or user-facing retry status.**
 
 ### UC6 - Manage products
 
@@ -123,7 +160,9 @@ Managers can:
 - update product information and stock;
 - delete a product when it has no active orders.
 
-On creation, `remainingStock` is initialized to `totalStock`. The service validates that minimum points do not exceed total points and that remaining stock does not exceed total stock.
+On creation, `remainingStock` is initialized to `totalStock`. The service validates that minimum points do not exceed total points and that remaining stock does not exceed total stock. **The guest-facing catalogue currently filters unavailable products rather than presenting a complete availability status.**
+
+![Product management sequence diagram](UML/manage_products.svg)
 
 ---
 
@@ -169,6 +208,8 @@ PointsAdjustmentConsumer
     +--> PointsTransactionMapper
 ```
 
+![Layered architecture diagram](UML/layered_architecture.svg)
+
 ### Main packages
 
 | Package | Responsibility |
@@ -203,6 +244,8 @@ ProductManagementController
 
 This keeps HTTP concerns separate from business validation and database access.
 
+See [`layered_architecture.svg`](UML/layered_architecture.svg) for the package-level diagram.
+
 ### 5.2 Strategy pattern for payment
 
 `PaymentStrategy` defines the validation contract. The concrete strategies are:
@@ -212,6 +255,12 @@ This keeps HTTP concerns separate from business validation and database access.
 - `PointsPlusVoucherStrategy`
 
 `PaymentStrategyFactory` selects a strategy by `PaymentTypeEnum`. A new payment instrument can therefore be added as another strategy without changing the main redemption orchestration.
+
+The class relationship and concrete implementations are shown in
+[`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg). This is not a Chain of Responsibility:
+there is no sequential handler chain, fallback handler, or `next` reference.
+
+![Payment strategy UML diagram](UML/payment_strategy_uml.svg)
 
 ### 5.3 State pattern for orders
 
@@ -226,9 +275,18 @@ The `order` package contains:
 
 The current guest redemption service persists order status directly as part of the redemption transaction. The state classes provide the model for order lifecycle behavior and can be expanded as cancellation and fulfilment workflows are added.
 
+![Order state diagram](UML/order_state_diagram_1.0.svg)
+
 ### 5.4 Message-driven processing
 
 Manual point awards are decoupled from the manager request through Artemis JMS. The producer acknowledges the request by enqueueing it, while the consumer performs the balance update and transaction insert. An exception allows the broker to redeliver the message.
+
+The queue, producer, consumer, database writes, and retry path are shown in
+[`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg). Persistent delivery,
+listener rollback/redelivery, and optimistic locking provide the implementation's reliability mechanism;
+there is no claim of exactly-once processing beyond the current transaction and message configuration.
+
+![Message-driven processing diagram](UML/message_driven_points_adjustment.svg)
 
 ### 5.5 Optimistic concurrency
 
@@ -261,6 +319,10 @@ PaymentMethod 1 ---- * Order
 Order 1 ---- * PointsTransaction
 PointsRule ..> User
 ```
+
+![Class diagram](UML/class_diagram_1.0.svg)
+
+![Entry relationship diagram](UML/entry_relationship_diagram.svg)
 
 The application uses business identifiers (`uid`, `pid`, `pmid`, `oid`, `ptid`, and `prid`) in service and mapper operations. The database schema intentionally keeps foreign-key enforcement in the application layer.
 
@@ -480,18 +542,31 @@ The repository currently contains a Spring context smoke test:
 src/test/java/com/hotel/hotel_loyalty/HotelLoyaltyApplicationTests.java
 ```
 
-The following test coverage should be added before treating the project as production-ready:
+The current automated suite contains 101 tests covering:
 
-1. login success, failed login, inactive user, and forbidden user;
-2. guest-to-guest ownership isolation;
-3. manager-to-guest role isolation;
-4. product create, update, delete, validation, and active-order protection;
-5. points-only, points-plus-cash, and points-plus-voucher validation;
-6. insufficient balance and out-of-stock redemption;
-7. atomic balance, stock, order, and transaction changes;
-8. manual-award queue processing and redelivery;
-9. points transaction history presentation;
-10. points rule creation, update, and eventual calculation integration.
+1. Login, account-status, guest-ownership, and manager-role security behavior.
+2. Product create, update, delete, validation, and active-order protection.
+3. Points-only, points-plus-cash, and points-plus-voucher validation.
+4. Minimum-point, supplement-conversion, insufficient-balance, and out-of-stock redemption.
+5. Atomic balance, stock, order, and points-transaction changes.
+6. Voucher redemption transaction-history linkage.
+7. Manual-award queue processing and optimistic-lock retry behavior.
+8. Mapper, controller, service, state, and application-context behavior.
+
+The suite does not yet provide browser-level end-to-end coverage for every use case, real external
+payment-provider tests, points-rule calculation integration, or queue dead-letter operations.
+
+1. login and account-status security behavior;
+2. guest ownership isolation and manager role isolation;
+3. product create, update, delete, validation, and active-order protection;
+4. points-only, points-plus-cash, and points-plus-voucher validation;
+5. insufficient balance, minimum-point, supplement conversion, and out-of-stock redemption;
+6. atomic balance, stock, order, and transaction changes;
+7. voucher redemption transaction-history linkage;
+8. manual-award queue processing and optimistic-lock retry behavior;
+9. mapper, controller, service, state, and application-context behavior.
+
+The full suite currently passes with `./mvnw clean test`.
 
 ---
 
@@ -509,39 +584,42 @@ The repository contains the following supporting artifacts:
 | Redemption sequence diagram | [`redeem_points_for_products.svg`](UML/redeem_points_for_products.svg) |
 | Order state diagram | [`order_state_diagram_1.0.svg`](UML/order_state_diagram_1.0.svg) |
 | Entry relationship diagram | [`entry_relationship_diagram.svg`](UML/entry_relationship_diagram.svg) |
+| Layered package architecture | [`layered_architecture.svg`](UML/layered_architecture.svg) |
+| Payment strategy UML | [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg) |
+| Message-driven points adjustment | [`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg) |
 | Database schema | [`schema.sql`](Project/hotel-loyalty/src/main/resources/schema.sql) |
 
 The original UML assets describe the conceptual design and should be read together with the current implementation notes in this report. In particular:
 
 - the running code uses one `UserDO` with role-based security rather than Java `Guest` and `Manager` subclasses;
 - payment methods are stored as database records while payment validation is implemented through `PaymentStrategy`;
-- the current guest page shows redemption records, not the full points transaction history;
+- the current guest page shows both redemption records and the full points transaction history;
 - order-state classes exist, but the current redemption service directly persists the relevant status transitions.
 
 ---
 
 ## 14. Implementation Gaps and Recommended Next Steps
 
-### Priority 1: Complete UC2
-
-Add a transaction-history collection to `MyPointsVO`, map `PointsTransactionDO` records in `GuestPointsServiceImpl`, and render signed changes and related order IDs in `guest_my_points.jsp`.
-
-### Priority 2: Make product availability explicit
-
-The points mall should return only products with remaining stock or explicitly show unavailable products as disabled. The current `ProductVO` does not expose remaining stock.
-
-### Priority 3: Connect points rules to earning
+### Priority 1: **[重点未实现]** Connect points rules to earning
 
 Introduce an external-order earning service that selects an applicable `PointsRuleDO`, calculates the points ratio, and sends the resulting earning event through the existing adjustment/message mechanism.
 
-### Priority 4: Improve auditability
+### Priority 2: **[重点未实现]** Add operational queue management
 
-Persist the manual-adjustment reason and add a durable adjustment/request identifier. Add a status endpoint or administrative view for queued, processed, retrying, and permanently failed messages.
+Persist the manual-adjustment reason, add a durable request identifier, and expose queued, processed, retrying, and permanently failed states with dead-letter administration.
 
-### Priority 5: Expand automated tests
+### Priority 3: **[部分实现]** Make product availability explicit
 
-Replace the context-only test baseline with service, controller, mapper, queue, and end-to-end tests covering the six use cases and their failure paths.
+The backend filters out-of-stock products, but the guest-facing model should expose availability and stock status explicitly where the use case requires it.
 
+### Priority 4: **[部分实现]** Complete order lifecycle parity
+
+Connect the existing order-state classes to cancellation, fulfilment, and shipment workflows. UC1
+account viewing is complete; the remaining gap is order lifecycle behavior, not account data.
+
+### Test coverage status
+
+The current automated suite contains 101 tests covering:
 ---
 
 ## 15. Conclusion
@@ -550,4 +628,4 @@ The current project is a working academic prototype of a hotel loyalty points ma
 
 The principal differences between the original design documents and the current code are implementation-level rather than architectural: the application uses role-based persistence instead of user inheritance, strategy classes instead of payment-method subclasses, and service/mapper layers instead of domain objects containing all behavior.
 
-The next meaningful increment is to complete the points transaction history and connect managed points rules to an actual points-earning workflow. Once those are implemented and covered by automated tests, the project will have much stronger traceability from the use-case catalogue through the UML artifacts to the running application.
+The next meaningful increment is to expose product availability more explicitly and connect managed points rules to an actual points-earning workflow. Once those are implemented and covered by browser-level tests, the project will have much stronger traceability from the use-case catalogue through the UML artifacts to the running application.
