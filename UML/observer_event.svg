@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560">
+  <style>
+    .title{font:700 24px sans-serif;fill:#17324d}.head{font:700 16px sans-serif;fill:#17324d}.text{font:14px sans-serif;fill:#263746}
+    .box{fill:#eef6ff;stroke:#3978a8;stroke-width:2}.event{fill:#fff4df;stroke:#c48528;stroke-width:2}.note{fill:#fff0f0;stroke:#b64b4b;stroke-width:2}
+    .arrow{stroke:#526777;stroke-width:2;fill:none;marker-end:url(#a);stroke-dasharray:0}
+  </style>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6Z" fill="#526777"/></marker></defs>
+  <text x="40" y="42" class="title">Observer / Publish-Subscribe Extension Point</text>
+  <rect x="55" y="120" width="280" height="120" rx="12" class="box"/><text x="80" y="157" class="head">Points deduction producer</text><text x="80" y="185" class="text">GuestPointsServiceImpl</text><text x="80" y="212" class="text">business transaction boundary</text>
+  <rect x="430" y="120" width="240" height="120" rx="12" class="event"/><text x="470" y="157" class="head">PointsDeductedEvent</text><text x="470" y="185" class="text">oid, uid, pid</text><text x="470" y="212" class="text">pointsUsed</text>
+  <rect x="765" y="80" width="280" height="110" rx="12" class="box"/><text x="790" y="118" class="head">RewardDistributionListener</text><text x="790" y="146" class="text">@EventListener method</text><text x="790" y="170" class="text">separate reward reaction</text>
+  <rect x="765" y="250" width="280" height="110" rx="12" class="box"/><text x="790" y="288" class="head">Future subscribers</text><text x="790" y="316" class="text">notifications, voucher issuance,</text><text x="790" y="340" class="text">analytics, or audit reactions</text>
+  <path d="M335 180H430M670 155H765M670 205C735 245 735 280 765 300" class="arrow"/>
+  <rect x="120" y="390" width="860" height="95" rx="12" class="note"/><text x="150" y="428" class="head">Current implementation status</text><text x="150" y="457" class="text">The event and listener are defined, but the current redemption path does not yet publish PointsDeductedEvent.</text>
+</svg>

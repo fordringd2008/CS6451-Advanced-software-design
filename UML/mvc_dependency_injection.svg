@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1150" height="600" viewBox="0 0 1150 600">
+  <style>
+    .title{font:700 24px sans-serif;fill:#17324d}.head{font:700 16px sans-serif;fill:#17324d}.text{font:14px sans-serif;fill:#263746}
+    .box{fill:#eef6ff;stroke:#3978a8;stroke-width:2}.service{fill:#fff4df;stroke:#c48528;stroke-width:2}.data{fill:#e9f8ef;stroke:#338653;stroke-width:2}
+    .arrow{stroke:#526777;stroke-width:2;fill:none;marker-end:url(#a)}
+  </style>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6Z" fill="#526777"/></marker></defs>
+  <text x="40" y="42" class="title">MVC, Layer Separation, and Constructor Dependency Injection</text>
+  <rect x="55" y="105" width="250" height="120" rx="12" class="box"/><text x="85" y="143" class="head">View / request boundary</text><text x="85" y="172" class="text">guest JSP pages</text><text x="85" y="198" class="text">REST and JSP controllers</text>
+  <rect x="410" y="90" width="300" height="150" rx="12" class="service"/><text x="445" y="130" class="head">Application model</text><text x="445" y="160" class="text">GuestPointsServiceImpl</text><text x="445" y="186" class="text">ProductManagementServiceImpl</text><text x="445" y="212" class="text">PointsRuleServiceImpl</text>
+  <rect x="825" y="105" width="260" height="120" rx="12" class="data"/><text x="855" y="143" class="head">Data access</text><text x="855" y="172" class="text">MyBatis @Mapper interfaces</text><text x="855" y="198" class="text">H2 database tables</text>
+  <path d="M305 165H410M710 165H825" class="arrow"/>
+  <rect x="145" y="345" width="870" height="110" rx="12" class="box"/><text x="175" y="384" class="head">Spring constructor injection</text><text x="175" y="414" class="text">Controllers receive service interfaces; services receive mapper interfaces and producers; listeners receive required services.</text><text x="175" y="438" class="text">Dependencies are explicit, replaceable, and testable rather than created inside business methods.</text>
+  <path d="M530 240V345" class="arrow"/>
+  <rect x="145" y="500" width="870" height="58" rx="12" class="data"/><text x="175" y="536" class="head">Separation of concerns: transport → business orchestration → persistence</text>
+</svg>

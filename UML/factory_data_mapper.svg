@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1150" height="610" viewBox="0 0 1150 610">
+  <style>
+    .title{font:700 24px sans-serif;fill:#17324d}.head{font:700 16px sans-serif;fill:#17324d}.text{font:14px sans-serif;fill:#263746}
+    .factory{fill:#fff4df;stroke:#c48528;stroke-width:2}.box{fill:#eef6ff;stroke:#3978a8;stroke-width:2}.db{fill:#e9f8ef;stroke:#338653;stroke-width:2}
+    .arrow{stroke:#526777;stroke-width:2;fill:none;marker-end:url(#a)}
+  </style>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6Z" fill="#526777"/></marker></defs>
+  <text x="40" y="42" class="title">Factory Resolution and MyBatis Data Mapper</text>
+  <rect x="50" y="100" width="245" height="110" rx="12" class="box"/><text x="75" y="137" class="head">GuestPointsServiceImpl</text><text x="75" y="165" class="text">requests payment validation</text><text x="75" y="190" class="text">for PaymentTypeEnum</text>
+  <rect x="380" y="90" width="280" height="130" rx="12" class="factory"/><text x="410" y="130" class="head">PaymentStrategyFactory</text><text x="410" y="160" class="text">Map&lt;PaymentTypeEnum,</text><text x="410" y="184" class="text">PaymentStrategy&gt;</text><text x="410" y="208" class="text">selects exactly one strategy</text>
+  <rect x="745" y="55" width="170" height="90" rx="12" class="box"/><text x="770" y="91" class="head">PointsOnlyStrategy</text><text x="770" y="119" class="text">validate points</text>
+  <rect x="940" y="55" width="170" height="90" rx="12" class="box"/><text x="965" y="91" class="head">CashStrategy</text><text x="965" y="119" class="text">validate supplement</text>
+  <rect x="745" y="175" width="170" height="90" rx="12" class="box"/><text x="760" y="211" class="head">VoucherStrategy</text><text x="760" y="239" class="text">validate voucher</text>
+  <path d="M295 155H380M660 130C700 105 715 105 745 105M660 150C760 100 870 100 940 105M660 180C700 215 715 220 745 220" class="arrow"/>
+  <rect x="50" y="350" width="270" height="110" rx="12" class="box"/><text x="75" y="387" class="head">Service layer</text><text x="75" y="415" class="text">UserMapper / ProductMapper</text><text x="75" y="440" class="text">OrderMapper / PointsMapper</text>
+  <rect x="420" y="335" width="280" height="140" rx="12" class="factory"/><text x="450" y="375" class="head">MyBatis mapper interfaces</text><text x="450" y="405" class="text">@Mapper isolates SQL</text><text x="450" y="433" class="text">from domain and service logic</text><text x="450" y="459" class="text">Data Mapper boundary</text>
+  <rect x="800" y="350" width="280" height="110" rx="12" class="db"/><text x="830" y="387" class="head">H2 persistence</text><text x="830" y="415" class="text">user, product, order,</text><text x="830" y="440" class="text">points and rule tables</text>
+  <path d="M320 405H420M700 405H800" class="arrow"/>
+</svg>

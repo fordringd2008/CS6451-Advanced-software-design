@@ -75,16 +75,16 @@ The use-case catalogue contains six primary use cases.
 
 | ID | Use case | Current implementation |
 |---|---|---|
-| UC1 | Guest login and personal account information | **[已实现]** Login, session identity, user ID, name, role, status, level, balance, registration time, and account page are implemented |
-| UC2 | View points transaction details | **[已实现]** My Points displays signed history, type, related order, timestamp, and redemption orders |
-| UC3 | Redeem points for products in the points mall | **[已实现（模拟支付范围）]** Points, simulated cash, and simulated voucher flows validate and persist orders |
-| UC4 | Manager manages points rules | **[部分实现 / 重点未实现]** Rule CRUD works; **没有接入酒店订单的实际积分计算和发放流程** |
-| UC5 | Manager manually adds points | **[核心已实现 / 部分实现]** Persistent queue, consumer, retry, balance update, and EARN transaction work; **队列状态、死信处理、请求状态查询和原因持久化未实现** |
-| UC6 | Manager manages products | **[核心已实现 / 部分实现]** Product CRUD and validation work; **积分商城没有向用户完整展示库存状态，库存可用性展示仍需增强** |
+| UC1 | Guest login and personal account information | **[Implemented]** Login, session identity, user ID, name, role, status, level, balance, registration time, and account page are implemented |
+| UC2 | View points transaction details | **[Implemented]** My Points displays signed history, type, related order, timestamp, and redemption orders |
+| UC3 | Redeem points for products in the points mall | **[Implemented within simulated-payment scope]** Points, simulated cash, and simulated voucher flows validate and persist orders |
+| UC4 | Manager manages points rules | **[Partially implemented / key gap]** Rule CRUD works; **hotel-order points calculation and award processing are not connected** |
+| UC5 | Manager manually adds points | **[Core implemented / partially complete]** Persistent queue, consumer, retry, balance update, and EARN transaction work; **queue status, dead-letter handling, request status, and reason persistence are not implemented** |
+| UC6 | Manager manages products | **[Core implemented / partially complete]** Product CRUD and validation work; **guest-facing inventory availability needs further presentation support** |
 
 ### Implementation status at a glance
 
-The following items are the **重点未实现或不完整功能** and should not be described as fully delivered:
+The following items are the **key incomplete or not-yet-implemented features** and should not be described as fully delivered:
 
 - **UC1:** No known missing item within the current use-case scope. The account page exposes every field currently stored for the user: ID, name, role, status, level, current points, and registration time.
 - **UC3:** No missing item within the agreed prototype scope. Cash and voucher are intentionally simulated; real provider integration is explicitly out of scope.
@@ -291,6 +291,86 @@ there is no claim of exactly-once processing beyond the current transaction and 
 ### 5.5 Optimistic concurrency
 
 Point and stock updates use conditional database updates. A redemption fails if the stored balance or stock changed between the initial read and the update. This prevents two concurrent requests from spending the same points or stock unit.
+
+![Optimistic concurrency diagram](UML/optimistic_concurrency.svg)
+
+### 5.6 Chain of Responsibility for post-login checks
+
+The security package contains a hand-written Chain of Responsibility for business checks that
+run after Spring Security has authenticated the password:
+
+```text
+StatusCheckHandler
+        -> PortalMatchHandler
+        -> LoginLogHandler
+        -> RedirectHandler
+```
+
+Each `LoginPostHandler` performs one check and passes the shared `LoginContext` to its successor.
+Returning `false` interrupts the chain. This is separate from Spring Security's framework
+`SecurityFilterChain`; the project-owned chain handles application-specific status, portal,
+logging, and redirect decisions.
+
+![Login Chain of Responsibility and Template Method](UML/login_chain_template.svg)
+
+### 5.7 Template Method in login handlers
+
+`LoginPostHandler.handle()` is a final template method. It executes the common control flow
+(run the current handler, then invoke the successor when the check passes), while concrete
+handlers implement the variable `doHandle()` step. This keeps chain traversal consistent and
+limits each handler to one business rule.
+
+### 5.8 Observer / publish-subscribe event handling
+
+`RewardDistributionListener` and `PointsDeductedEvent` provide an application-level Observer /
+publish-subscribe extension point. The listener can observe a points-deducted event and keep
+reward distribution separate from point deduction. However, the current redemption path does
+not publish `PointsDeductedEvent`, so this event-driven reward-distribution path is a prepared
+extension rather than an active end-to-end flow. Additional listeners, such as notification or
+voucher issuance, can subscribe once event publication is wired into the redemption service.
+
+![Observer and event publication diagram](UML/observer_event.svg)
+
+### 5.9 Factory and Data Mapper patterns
+
+`PaymentStrategyFactory` is a Factory object that resolves a payment strategy from
+`PaymentTypeEnum`. The MyBatis mapper interfaces (`UserMapper`, `ProductMapper`,
+`OrderMapper`, and others) implement the Data Mapper pattern: persistence operations are
+kept outside the domain objects and services.
+
+![Factory and Data Mapper diagram](UML/factory_data_mapper.svg)
+
+### 5.10 MVC and dependency injection
+
+The JSP controllers and REST controllers provide the Model-View-Controller separation:
+controllers handle requests, services provide application behavior, and JSP pages or
+`Result` objects provide the view/response. Constructor injection is used throughout the
+controllers, services, producers, consumers, and listeners, making dependencies explicit
+and testable.
+
+![MVC and dependency injection diagram](UML/mvc_dependency_injection.svg)
+
+### 5.11 Repository-level design principles
+
+The implementation applies the following principles:
+
+- **Single Responsibility Principle:** controllers handle transport, services orchestrate
+  business rules, mappers handle persistence, and payment strategies validate one payment type.
+- **Open/Closed Principle:** new payment strategies and event listeners can be added without
+  rewriting the redemption orchestration or existing listeners.
+- **Dependency Inversion Principle:** services depend on mapper and producer interfaces or
+  abstractions rather than constructing database or messaging infrastructure directly.
+- **Encapsulation:** payment validation, order transitions, security checks, and persistence
+  operations are kept behind focused interfaces and service boundaries.
+- **Separation of concerns:** authentication, authorization, business validation, persistence,
+  messaging, and presentation are placed in separate packages and layers.
+- **Fail-fast validation:** invalid status, portal, payment, stock, balance, and input conditions
+  are rejected before dependent operations continue.
+- **Defensive security design:** role-based URL rules, ownership checks, BCrypt password hashing,
+  generic login errors, and explicit account-status checks reduce unauthorized access and
+  information disclosure.
+
+![Design principles evidence diagram](UML/design_principles.svg)
 
 ---
 
@@ -587,6 +667,12 @@ The repository contains the following supporting artifacts:
 | Layered package architecture | [`layered_architecture.svg`](UML/layered_architecture.svg) |
 | Payment strategy UML | [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg) |
 | Message-driven points adjustment | [`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg) |
+| Optimistic concurrency control | [`optimistic_concurrency.svg`](UML/optimistic_concurrency.svg) |
+| Login Chain of Responsibility and Template Method | [`login_chain_template.svg`](UML/login_chain_template.svg) |
+| Observer event extension point | [`observer_event.svg`](UML/observer_event.svg) |
+| Factory and Data Mapper | [`factory_data_mapper.svg`](UML/factory_data_mapper.svg) |
+| MVC and dependency injection | [`mvc_dependency_injection.svg`](UML/mvc_dependency_injection.svg) |
+| Design principles evidence | [`design_principles.svg`](UML/design_principles.svg) |
 | Database schema | [`schema.sql`](Project/hotel-loyalty/src/main/resources/schema.sql) |
 
 The original UML assets describe the conceptual design and should be read together with the current implementation notes in this report. In particular:
@@ -600,19 +686,19 @@ The original UML assets describe the conceptual design and should be read togeth
 
 ## 14. Implementation Gaps and Recommended Next Steps
 
-### Priority 1: **[重点未实现]** Connect points rules to earning
+### Priority 1: **[Key gap]** Connect points rules to earning
 
 Introduce an external-order earning service that selects an applicable `PointsRuleDO`, calculates the points ratio, and sends the resulting earning event through the existing adjustment/message mechanism.
 
-### Priority 2: **[重点未实现]** Add operational queue management
+### Priority 2: **[Key gap]** Add operational queue management
 
 Persist the manual-adjustment reason, add a durable request identifier, and expose queued, processed, retrying, and permanently failed states with dead-letter administration.
 
-### Priority 3: **[部分实现]** Make product availability explicit
+### Priority 3: **[Partially complete]** Make product availability explicit
 
 The backend filters out-of-stock products, but the guest-facing model should expose availability and stock status explicitly where the use case requires it.
 
-### Priority 4: **[部分实现]** Complete order lifecycle parity
+### Priority 4: **[Partially complete]** Complete order lifecycle parity
 
 Connect the existing order-state classes to cancellation, fulfilment, and shipment workflows. UC1
 account viewing is complete; the remaining gap is order lifecycle behavior, not account data.
