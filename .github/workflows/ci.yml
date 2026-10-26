@@ -1,0 +1,41 @@
+name: CI
+
+# Trigger: every push to develop, and every pull request to develop
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Pull the code onto the runner
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Install JDK 21 (Temurin, same as local dev)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # 3. Cache Maven dependencies (speeds up later runs)
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('Project/hotel-loyalty/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      # 4. Make the Maven wrapper executable (Windows commits may lose the bit)
+      - name: Grant execute permission for mvnw
+        run: chmod +x Project/hotel-loyalty/mvnw
+
+      # 5. Compile, run all tests, and package the JAR
+      - name: Build and test
+        working-directory: Project/hotel-loyalty
+        run: ./mvnw -B verify
