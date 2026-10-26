@@ -15,6 +15,8 @@ import com.hotel.hotel_loyalty.mapper.PaymentMethodMapper;
 import com.hotel.hotel_loyalty.mapper.PointsTransactionMapper;
 import com.hotel.hotel_loyalty.mapper.ProductMapper;
 import com.hotel.hotel_loyalty.mapper.UserMapper;
+import com.hotel.hotel_loyalty.payment.PaymentGateway;
+import com.hotel.hotel_loyalty.payment.PaymentGatewayResult;
 import com.hotel.hotel_loyalty.payment.PaymentRequest;
 import com.hotel.hotel_loyalty.payment.PaymentResult;
 import com.hotel.hotel_loyalty.payment.PaymentStrategy;
@@ -69,6 +71,8 @@ public class GuestPointsServiceImpl implements GuestPointsService {
     private final PointsTransactionMapper pointsTransactionMapper;
     /** Payment strategy resolver. */
     private final PaymentStrategyFactory paymentStrategyFactory;
+    /** Payment gateway that settles the non-points portion of a payment. */
+    private final PaymentGateway paymentGateway;
     /** In-process event publisher (architecture document 5.0 — Event-Driven). */
     private final ApplicationEventPublisher eventPublisher;
 
@@ -81,12 +85,14 @@ public class GuestPointsServiceImpl implements GuestPointsService {
      * @param orderMapper order data access object
      * @param pointsTransactionMapper points transaction data access object
      * @param paymentStrategyFactory payment strategy resolver
+     * @param paymentGateway payment gateway for the non-points portion
      * @param eventPublisher in-process event publisher
      */
     public GuestPointsServiceImpl(UserMapper userMapper, ProductMapper productMapper,
                                   PaymentMethodMapper paymentMethodMapper, OrderMapper orderMapper,
                                   PointsTransactionMapper pointsTransactionMapper,
                                   PaymentStrategyFactory paymentStrategyFactory,
+                                  PaymentGateway paymentGateway,
                                   ApplicationEventPublisher eventPublisher) {
         this.userMapper = userMapper;
         this.productMapper = productMapper;
@@ -94,6 +100,7 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         this.orderMapper = orderMapper;
         this.pointsTransactionMapper = pointsTransactionMapper;
         this.paymentStrategyFactory = paymentStrategyFactory;
+        this.paymentGateway = paymentGateway;
         this.eventPublisher = eventPublisher;
     }
 
@@ -175,10 +182,11 @@ public class GuestPointsServiceImpl implements GuestPointsService {
             throw new IllegalArgumentException("unsupported payment method: " + request.getPmid());
         }
         PaymentStrategy strategy = paymentStrategyFactory.getStrategy(paymentType);
-        PaymentResult validation = strategy.validate(new PaymentRequest(request.getUid(), request.getPid(),
+        PaymentRequest paymentRequest = new PaymentRequest(request.getUid(), request.getPid(),
                 request.getPmid(), request.getPointsUsed(), request.getCashUsed(),
                 request.getVoucherUsed(), product.getTotalPointsRequired(),
-                product.getMinPointsRequired(), user.getCurrentPoint()));
+                product.getMinPointsRequired(), user.getCurrentPoint());
+        PaymentResult validation = strategy.validate(paymentRequest);
         if (!validation.isSuccess()) {
             throw new IllegalArgumentException(validation.getMessage());
         }
@@ -203,10 +211,28 @@ public class GuestPointsServiceImpl implements GuestPointsService {
                 user.getCurrentPoint() - request.getPointsUsed(), now) != SINGLE_ITEM_QUANTITY) {
             throw new IllegalStateException("points balance changed; please retry");
         }
+        // Settle the non-points portion through the payment gateway. The stub
+        // gateway always accepts; a production gateway would really collect the
+        // cash or redeem the voucher here. The order stays Pending Payment until
+        // this settles successfully (whole method is transactional).
+        if (paymentType == PaymentTypeEnum.POINTS_PLUS_CASH) {
+            PaymentGatewayResult gatewayResult = paymentGateway.chargeCash(paymentRequest);
+            if (!gatewayResult.isSuccess()) {
+                throw new IllegalStateException("cash payment rejected: " + gatewayResult.getMessage());
+            }
+        } else if (paymentType == PaymentTypeEnum.POINTS_PLUS_VOUCHER) {
+            PaymentGatewayResult gatewayResult = paymentGateway.redeemVoucher(paymentRequest);
+            if (!gatewayResult.isSuccess()) {
+                throw new IllegalStateException("voucher rejected: " + gatewayResult.getMessage());
+            }
+        }
+
+        // Deduct stock only after payment has settled successfully.
         if (productMapper.deductStock(request.getPid(), SINGLE_ITEM_QUANTITY, now)
                 != SINGLE_ITEM_QUANTITY) {
             throw new IllegalStateException("product is no longer in stock");
         }
+
         if (orderMapper.compareAndUpdateStatus(oid, OrderStatusEnum.PENDING_PAYMENT.getCode(),
                 OrderStatusEnum.PAID.getCode(), now) != SINGLE_ITEM_QUANTITY) {
             throw new IllegalStateException("could not complete payment");
