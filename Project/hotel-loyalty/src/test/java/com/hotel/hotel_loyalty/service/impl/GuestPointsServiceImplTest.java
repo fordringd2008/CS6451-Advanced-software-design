@@ -11,6 +11,7 @@ import com.hotel.hotel_loyalty.mapper.PaymentMethodMapper;
 import com.hotel.hotel_loyalty.mapper.PointsTransactionMapper;
 import com.hotel.hotel_loyalty.mapper.ProductMapper;
 import com.hotel.hotel_loyalty.mapper.UserMapper;
+import com.hotel.hotel_loyalty.payment.PaymentGateway;
 import com.hotel.hotel_loyalty.payment.PaymentStrategyFactory;
 import com.hotel.hotel_loyalty.vo.ConfirmPaymentVO;
 import com.hotel.hotel_loyalty.vo.MyPointsVO;
@@ -47,10 +48,11 @@ class GuestPointsServiceImplTest {
     private final OrderMapper orderMapper = mock(OrderMapper.class);
     private final PointsTransactionMapper pointsTransactionMapper = mock(PointsTransactionMapper.class);
     private final PaymentStrategyFactory paymentStrategyFactory = mock(PaymentStrategyFactory.class);
+    private final PaymentGateway paymentGateway = mock(PaymentGateway.class);
     private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
     private final GuestPointsServiceImpl service = new GuestPointsServiceImpl(
             userMapper, productMapper, paymentMethodMapper, orderMapper,
-            pointsTransactionMapper, paymentStrategyFactory, eventPublisher);
+            pointsTransactionMapper, paymentStrategyFactory, paymentGateway, eventPublisher);
 
     private final LocalDateTime now = LocalDateTime.of(2026, 10, 25, 0, 0, 0);
 
