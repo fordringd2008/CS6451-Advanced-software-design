@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST endpoints for guest points and product redemption operations.
  *
- * @author Copilot
+ * @author Fordring
  * @since 1.0
  */
 @Tag(name = "Guest points", description = "Points mall, points profile and product redemption")

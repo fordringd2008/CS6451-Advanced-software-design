@@ -14,7 +14,7 @@ import com.hotel.hotel_loyalty.enums.OrderStatusEnum;
  *   COMPLETED / CANCELLED — terminal
  * </pre>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public interface OrderState {

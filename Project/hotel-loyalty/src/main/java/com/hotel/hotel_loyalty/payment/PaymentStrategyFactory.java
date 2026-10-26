@@ -15,7 +15,7 @@ import java.util.Map;
  * by supported type. Adding a new payment type = add one bean, nothing else
  * changes here (open-closed principle).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component

@@ -5,6 +5,8 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Formats timestamps for user-facing pages.
+ *
+ * @author Fordring
  */
 public final class DateTimeDisplayFormatter {
 

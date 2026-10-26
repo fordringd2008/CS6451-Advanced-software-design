@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * One row in the "My Redemptions" tab (GUI: my_points record cards).
  * Example: "Custom Hotel LEGO Keychain | Order #90117 | -800 pts +€30 | 2025-10-14".
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

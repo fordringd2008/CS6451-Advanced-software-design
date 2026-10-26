@@ -13,7 +13,7 @@ import java.util.List;
  * MyBatis mapper for the "user" table.
  * Note: no SELECT * (Alibaba rule), all parameters use #{} (never ${}).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

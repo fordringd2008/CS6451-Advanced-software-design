@@ -17,7 +17,7 @@ import java.io.IOException;
  * the single {@code formLogin().loginPage("/login")}, so an admin who
  * bookmarks {@code /admin/products} would land on the guest login page.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Component

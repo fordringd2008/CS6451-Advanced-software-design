@@ -26,7 +26,7 @@ import java.util.List;
  * Layered per the architecture document: Controller (web) → Service → Mapper (dao).
  * Every method returns the unified {@link Result} wrapper (Alibaba rule).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Tag(name = "UC6 Product Management", description = "Admin product CRUD — use case 6")

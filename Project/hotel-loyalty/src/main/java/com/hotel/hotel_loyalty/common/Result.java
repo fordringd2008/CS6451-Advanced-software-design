@@ -6,7 +6,7 @@ import lombok.Data;
  * Unified API response wrapper (Alibaba rule: every Controller returns a
  * standard Result object with code, message and data).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

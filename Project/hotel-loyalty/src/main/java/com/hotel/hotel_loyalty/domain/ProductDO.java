@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * Points mall product data object, maps to table "product".
  * Fields aligned with candidate_objects_1.0, ER diagram and UC6.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

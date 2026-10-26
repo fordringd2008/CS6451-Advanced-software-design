@@ -7,6 +7,11 @@ import org.springframework.jms.support.converter.JacksonJsonMessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
+/**
+ * JMS and Artemis configuration.
+ *
+ * @author wukewei
+ */
 @Configuration
 public class JmsConfig {
 

@@ -9,7 +9,7 @@ import com.hotel.hotel_loyalty.enums.PaymentTypeEnum;
  * requires a new implementation and a factory entry — no existing code
  * changes (fulfils the use-case diagram Extensibility note).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public interface PaymentStrategy {

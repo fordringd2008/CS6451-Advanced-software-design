@@ -11,7 +11,7 @@ import java.util.List;
  * Flow (use case steps 1-5): Manager enters rules page → adds or modifies a
  * rule (type, threshold, ratio, description) → system validates and stores.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public interface PointsRuleService {

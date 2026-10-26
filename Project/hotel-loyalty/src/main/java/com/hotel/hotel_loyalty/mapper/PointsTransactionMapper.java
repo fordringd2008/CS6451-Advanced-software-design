@@ -12,7 +12,7 @@ import java.util.List;
  * MyBatis mapper for the "points_transaction" table.
  * Insert-only from the redemption flow — transactions are an audit log, never updated or deleted.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

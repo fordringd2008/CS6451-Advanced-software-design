@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Data is loaded via fetch (GET /api/admin/points/user/{uid}) per the
  * JSP+AJAX architecture (same pattern as AdminProductController).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Controller

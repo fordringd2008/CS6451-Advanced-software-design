@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * View resolution: {@code spring.mvc.view.prefix=/WEB-INF/jsp/} + {@code suffix=.jsp},
  * so returning {@code "products"} resolves to {@code /WEB-INF/jsp/products.jsp}.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Controller

@@ -22,7 +22,7 @@ import java.util.List;
  * and services stay untouched because they read identity from
  * SecurityContext, never from HttpSession directly.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Service

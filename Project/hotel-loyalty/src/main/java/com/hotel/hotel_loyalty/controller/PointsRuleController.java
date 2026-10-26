@@ -24,7 +24,7 @@ import java.util.List;
  * No DELETE endpoint: rules are never hard-deleted (audit trail preserved,
  * matching the GUI prototype which only shows an edit button).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Tag(name = "UC4 Points Rules", description = "Admin points rule management — use case 4")

@@ -9,7 +9,7 @@ import lombok.Data;
 /**
  * UC6 submitCreate form — fields match admin GUI product modal exactly.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

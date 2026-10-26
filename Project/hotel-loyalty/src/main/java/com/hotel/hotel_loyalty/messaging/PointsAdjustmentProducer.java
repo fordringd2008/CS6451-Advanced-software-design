@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * Delivery mode is persistent by default in JmsTemplate, satisfying the
  * "persistent queue" requirement.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component

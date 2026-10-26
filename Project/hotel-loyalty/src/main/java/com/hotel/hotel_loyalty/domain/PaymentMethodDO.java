@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  *   <li>PM-3 — Points + Voucher (Type 3)</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

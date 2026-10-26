@@ -18,7 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 /**
  * Server-side JSP pages for guest points operations.
  *
- * @author Copilot
+ * @author Fordring
  * @since 1.0
  */
 @Controller
