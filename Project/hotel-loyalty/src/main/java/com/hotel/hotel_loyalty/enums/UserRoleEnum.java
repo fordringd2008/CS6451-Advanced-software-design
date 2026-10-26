@@ -4,7 +4,7 @@ package com.hotel.hotel_loyalty.enums;
  * User role.
  * Aligned with candidate_objects: 0 Guest, 1 Manager.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public enum UserRoleEnum {

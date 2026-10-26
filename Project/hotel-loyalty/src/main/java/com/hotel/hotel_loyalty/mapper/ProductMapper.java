@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * MyBatis mapper for the "product" table (UC6 Manage Products).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

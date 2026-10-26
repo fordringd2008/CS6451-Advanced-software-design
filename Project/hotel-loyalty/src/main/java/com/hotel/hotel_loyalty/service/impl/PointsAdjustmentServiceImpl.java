@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
  * log for audit. It is not persisted to points_transaction because the table
  * has no reason column (schema.sql) — adding one would be a guess.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Service

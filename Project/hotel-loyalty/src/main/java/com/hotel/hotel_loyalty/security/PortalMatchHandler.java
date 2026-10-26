@@ -9,7 +9,7 @@ package com.hotel.hotel_loyalty.security;
  * revealing that the account exists (security best practice,
  * consistent with {@code LoginFailureHandler}).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 public class PortalMatchHandler extends LoginPostHandler {

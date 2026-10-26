@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * My-points page header payload (GUI: user card + points card + register time).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

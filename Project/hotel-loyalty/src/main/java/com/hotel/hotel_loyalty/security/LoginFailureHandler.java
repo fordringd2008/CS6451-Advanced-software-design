@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
  * error message. Does NOT reveal whether the account exists
  * (security best practice: same message for both cases).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Component

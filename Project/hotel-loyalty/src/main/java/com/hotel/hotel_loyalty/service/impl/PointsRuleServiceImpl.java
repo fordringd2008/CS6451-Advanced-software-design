@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  *   <li>pointsRatio must be a positive integer (percentage)</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Service

@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * Payment method radio option on the confirm-payment page (GUI: Type 1/2/3).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

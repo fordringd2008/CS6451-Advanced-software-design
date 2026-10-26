@@ -17,7 +17,7 @@ import java.util.List;
  *   <li>list / get: read queries</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public interface ProductManagementService {

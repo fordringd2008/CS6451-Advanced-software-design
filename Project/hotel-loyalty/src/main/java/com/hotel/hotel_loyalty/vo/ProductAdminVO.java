@@ -7,7 +7,7 @@ import lombok.Data;
  * Columns: PID | Name | Points Required | Min Points | Stock (Left/Total) | Actions.
  * imageUrl is not shown in the table but is needed to pre-fill the edit modal.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

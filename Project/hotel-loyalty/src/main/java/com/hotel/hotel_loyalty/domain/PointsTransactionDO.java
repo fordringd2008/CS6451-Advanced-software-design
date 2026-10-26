@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  *   <li>"pointsChange" is signed: positive for earning, negative for redemption.</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

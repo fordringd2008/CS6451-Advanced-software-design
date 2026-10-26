@@ -6,7 +6,7 @@ package com.hotel.hotel_loyalty.enums;
  * 1 Pure Points, 2 Points + Cash, 3 Points + Voucher.
  * New types can be added without changing core flow (Extensibility).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public enum PaymentTypeEnum {

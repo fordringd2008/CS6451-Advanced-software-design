@@ -10,7 +10,7 @@ import com.hotel.hotel_loyalty.vo.UserPointsVO;
  * enqueue the adjustment (step 4) → consumer credits points asynchronously
  * (steps 5-6, with automatic retry).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public interface PointsAdjustmentService {

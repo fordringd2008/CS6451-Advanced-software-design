@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * UC5 submitAdjustment form — fields match admin GUI points-adjustment step 2 exactly.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

@@ -5,7 +5,7 @@ import com.hotel.hotel_loyalty.enums.OrderStatusEnum;
 /**
  * Terminal state — order fulfilled (status code 3). No further transitions.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public class CompletedState implements OrderState {

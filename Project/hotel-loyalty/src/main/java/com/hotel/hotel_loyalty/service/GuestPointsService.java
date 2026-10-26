@@ -9,7 +9,7 @@ import com.hotel.hotel_loyalty.vo.PointsMallVO;
 /**
  * Guest-facing points mall, points profile and redemption operations.
  *
- * @author Copilot
+ * @author Fordring
  * @since 1.0
  */
 public interface GuestPointsService {

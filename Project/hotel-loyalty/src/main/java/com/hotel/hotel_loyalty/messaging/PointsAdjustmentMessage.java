@@ -16,7 +16,7 @@ import java.io.Serializable;
  * because Lombok-generated constructor parameter names are not preserved
  * in bytecode, which breaks Jackson deserialization in the JMS converter.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Getter

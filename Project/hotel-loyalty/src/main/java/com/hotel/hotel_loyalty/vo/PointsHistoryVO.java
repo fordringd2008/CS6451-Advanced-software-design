@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * One row in the "Points History" tab (GUI: my_points prototype Points History).
  * Audit log of every points earn/redeem event.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

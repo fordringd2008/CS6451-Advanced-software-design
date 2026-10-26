@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * UC5 manual points-credit form — fields match admin GUI adjust tab step 2.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

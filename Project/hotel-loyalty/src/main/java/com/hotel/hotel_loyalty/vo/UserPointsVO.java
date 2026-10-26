@@ -6,7 +6,7 @@ import lombok.Data;
  * User points summary for the admin points-adjustment page (UC5 step 1).
  * Excludes password — never exposed to the web layer.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

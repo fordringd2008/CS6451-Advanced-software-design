@@ -7,7 +7,7 @@ package com.hotel.hotel_loyalty.security;
  * (fail fast principle). Both INACTIVE (1) and FORBIDDEN (2)
  * accounts are rejected — only NORMAL (0) may log in.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 public class StatusCheckHandler extends LoginPostHandler {

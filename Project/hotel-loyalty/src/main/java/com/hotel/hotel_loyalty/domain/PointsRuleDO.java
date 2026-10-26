@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  *   <li>"description" — rule description text.</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

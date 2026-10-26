@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * Guest-facing product card in the points mall (GUI: points_mall grid).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

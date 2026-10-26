@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  *       navigated from PointsTransaction.relatedOrderId instead.</li>
  * </ul>
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 /**
  * Guest redemption request submitted by the confirm-payment page.
  *
- * @author Copilot
+ * @author Fordring
  * @since 1.0
  */
 @Data

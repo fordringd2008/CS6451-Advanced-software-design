@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * immediately with a queue-accepted confirmation. Steps 5-6 (credit points,
  * create transaction) run asynchronously in the JMS consumer.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Tag(name = "UC5 Points Adjustment", description = "Admin manually add points — use case 5")

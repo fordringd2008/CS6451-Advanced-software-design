@@ -15,7 +15,7 @@ import lombok.ToString;
  * Published via Spring ApplicationEventPublisher (monolith, in-process);
  * the JMS queue is reserved for UC5 cross-failure persistence.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Getter

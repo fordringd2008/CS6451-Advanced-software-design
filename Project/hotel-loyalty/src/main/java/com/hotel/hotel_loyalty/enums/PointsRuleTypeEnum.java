@@ -10,7 +10,7 @@ package com.hotel.hotel_loyalty.enums;
  * applies by user level). For BY_PERIOD, threshold is the min order amount
  * and startTime/endTime define the effective period.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public enum PointsRuleTypeEnum {

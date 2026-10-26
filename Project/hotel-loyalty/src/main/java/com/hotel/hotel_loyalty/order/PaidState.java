@@ -7,7 +7,7 @@ import com.hotel.hotel_loyalty.enums.OrderStatusEnum;
  * Note: cancellation from PAID is allowed by the state diagram, but the
  * points-refund side-effect is deferred (consistency conflict #5 unresolved).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public class PaidState implements OrderState {

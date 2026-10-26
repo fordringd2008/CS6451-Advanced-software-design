@@ -20,7 +20,7 @@ import java.util.UUID;
  * The optimistic-lock update (compareAndUpdatePoint) makes concurrent
  * adjustments safe.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component
