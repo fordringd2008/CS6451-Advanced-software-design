@@ -15,6 +15,7 @@ import com.hotel.hotel_loyalty.mapper.PaymentMethodMapper;
 import com.hotel.hotel_loyalty.mapper.PointsTransactionMapper;
 import com.hotel.hotel_loyalty.mapper.ProductMapper;
 import com.hotel.hotel_loyalty.mapper.UserMapper;
+import com.hotel.hotel_loyalty.order.OrderContext;
 import com.hotel.hotel_loyalty.payment.PaymentGateway;
 import com.hotel.hotel_loyalty.payment.PaymentGatewayResult;
 import com.hotel.hotel_loyalty.payment.PaymentRequest;
@@ -233,9 +234,13 @@ public class GuestPointsServiceImpl implements GuestPointsService {
             throw new IllegalStateException("product is no longer in stock");
         }
 
+        // State Pattern — in-memory rule check (first line of defense).
+        // OrderContext verifies the transition is legal; CAS below persists it safely.
+        OrderContext orderCtx = OrderContext.fromDbStatus(oid, order.getStatus());
+        orderCtx.pay();
         if (orderMapper.compareAndUpdateStatus(oid, OrderStatusEnum.PENDING_PAYMENT.getCode(),
-                OrderStatusEnum.PAID.getCode(), now) != SINGLE_ITEM_QUANTITY) {
-            throw new IllegalStateException("could not complete payment");
+                orderCtx.getCurrentState().getStatus().getCode(), now) != SINGLE_ITEM_QUANTITY) {
+            throw new IllegalStateException("concurrent modification on order status; please retry");
         }
 
         PointsTransactionDO transaction = new PointsTransactionDO();
