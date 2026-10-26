@@ -10,7 +10,7 @@ import lombok.AccessLevel;
  * Outcome of a payment strategy validation (UC3 step 6a / Extensions 5a).
  * A strategy never touches the database — it only validates and reports.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Getter

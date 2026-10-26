@@ -40,7 +40,7 @@ import java.util.UUID;
 /**
  * Guest points mall and redemption service implementation.
  *
- * @author Copilot
+ * @author Fordring
  * @since 1.0
  */
 @Service

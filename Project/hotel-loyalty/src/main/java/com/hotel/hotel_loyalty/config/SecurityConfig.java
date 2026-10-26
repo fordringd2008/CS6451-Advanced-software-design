@@ -30,7 +30,7 @@ import jakarta.servlet.DispatcherType;
  * formLogin block and AppUserDetailsService — URL rules and all
  * business code stay unchanged (Evolutionary Architecture).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Configuration

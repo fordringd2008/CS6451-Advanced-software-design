@@ -11,7 +11,7 @@ package com.hotel.hotel_loyalty.security;
  * login business rules (status check, portal match, logging, redirect)
  * so they are visible, testable, and defensible in one place.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 public abstract class LoginPostHandler {

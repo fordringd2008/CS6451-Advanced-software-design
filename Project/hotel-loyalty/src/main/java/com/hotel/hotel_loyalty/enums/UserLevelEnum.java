@@ -4,7 +4,7 @@ package com.hotel.hotel_loyalty.enums;
  * Membership level (L1 to L5).
  * Aligned with candidate_objects (level 1-5), my_points prototype and admin rules.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public enum UserLevelEnum {

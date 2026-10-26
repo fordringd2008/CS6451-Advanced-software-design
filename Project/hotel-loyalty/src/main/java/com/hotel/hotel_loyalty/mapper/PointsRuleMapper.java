@@ -14,7 +14,7 @@ import java.util.List;
  * UC4 Manage Points Rules — full CRUD (create, read, update; rules are never
  * hard-deleted to preserve audit trail, but update can disable via end_time).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

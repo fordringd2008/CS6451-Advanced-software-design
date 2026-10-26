@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Points mall page payload (GUI: header balance + product grid).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

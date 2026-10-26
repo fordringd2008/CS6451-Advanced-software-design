@@ -9,7 +9,7 @@ import lombok.Data;
 /**
  * UC6 submitUpdate form — same fields as create plus pid (business key).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

@@ -15,7 +15,7 @@ import java.io.IOException;
  * Without this, {@code logoutSuccessUrl("/login")} always lands on the
  * guest portal, so an admin who signs out would see the guest login page.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Component

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * Both forms POST to the same /auth/login URL (Spring Security);
  * a hidden "portal" field tells our CoR which page was used.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Controller

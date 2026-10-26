@@ -5,7 +5,7 @@ import com.hotel.hotel_loyalty.enums.OrderStatusEnum;
 /**
  * Initial order state — awaiting payment (status code 1).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public class PendingPaymentState implements OrderState {

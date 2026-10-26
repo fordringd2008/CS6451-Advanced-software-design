@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 /**
  * Account details page payload (GUI: account profile card).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

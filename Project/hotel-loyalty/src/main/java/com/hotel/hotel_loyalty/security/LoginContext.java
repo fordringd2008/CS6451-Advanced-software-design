@@ -8,7 +8,7 @@ import lombok.Setter;
  * Carries login state through the handler chain (GoF Chain of Responsibility).
  * Handlers read from it; only RedirectHandler writes redirectUrl.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Getter

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * Placed after status and portal checks so we only log
  * users who actually passed the business rules.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 public class LoginLogHandler extends LoginPostHandler {

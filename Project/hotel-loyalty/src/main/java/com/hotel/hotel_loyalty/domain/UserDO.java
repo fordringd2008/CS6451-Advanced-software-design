@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * User data object, maps to table "user".
  * Fields aligned with candidate_objects_1.0 and ER diagram.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

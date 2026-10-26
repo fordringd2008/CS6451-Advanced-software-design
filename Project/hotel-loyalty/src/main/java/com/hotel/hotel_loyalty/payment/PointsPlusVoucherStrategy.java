@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * Type 3 — points + voucher combination payment (UC3 Extension 5a).
  * Rules: points must meet the minimum, a positive voucher supplement is required.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component

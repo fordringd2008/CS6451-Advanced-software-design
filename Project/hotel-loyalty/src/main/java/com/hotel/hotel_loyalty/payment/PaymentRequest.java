@@ -10,7 +10,7 @@ import java.math.BigDecimal;
  * Immutable input for a payment strategy — carries everything a strategy
  * needs to validate and calculate a redemption payment (UC3).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Getter

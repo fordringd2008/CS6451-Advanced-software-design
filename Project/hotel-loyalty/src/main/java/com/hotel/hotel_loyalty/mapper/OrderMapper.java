@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * MyBatis mapper for the "order" table.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

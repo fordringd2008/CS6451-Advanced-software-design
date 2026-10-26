@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Field semantics follow candidate_objects_1.0.xlsx:
  * threshold = min order amount (nullable); pointsRatio = percentage (int).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

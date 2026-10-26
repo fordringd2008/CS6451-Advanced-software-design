@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * Controller layer must catch and convert all exceptions into a standard
  * response; here centralised in one advice bean).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @RestControllerAdvice

@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
  * Design note: business rules live here, not in the framework,
  * so the whole login logic is visible in our own code.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 @Component

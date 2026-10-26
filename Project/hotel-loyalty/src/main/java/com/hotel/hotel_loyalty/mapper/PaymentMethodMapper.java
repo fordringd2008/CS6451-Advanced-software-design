@@ -11,7 +11,7 @@ import java.util.List;
  * MyBatis mapper for the "payment_method" table.
  * Read-only — payment methods are seeded via data.sql and managed by DBA.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Mapper

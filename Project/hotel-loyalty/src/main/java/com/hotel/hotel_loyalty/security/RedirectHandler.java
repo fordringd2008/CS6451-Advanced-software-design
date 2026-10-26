@@ -6,7 +6,7 @@ package com.hotel.hotel_loyalty.security;
  * Why last: redirect is the final action; it needs all
  * earlier checks to have passed.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.1
  */
 public class RedirectHandler extends LoginPostHandler {

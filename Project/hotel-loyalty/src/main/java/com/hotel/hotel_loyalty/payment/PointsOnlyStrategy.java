@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
  * Type 1 — pure points payment (UC3 main flow).
  * Rules: points must cover the full price, no cash/voucher supplement.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component

@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Confirm-payment page payload (GUI: product + payment info + method radios).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Data

@@ -4,7 +4,7 @@ package com.hotel.hotel_loyalty.enums;
  * User account status.
  * Aligned with candidate_objects: 0 Normal, 1 Inactive, 2 Forbidden.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 public enum UserStatusEnum {

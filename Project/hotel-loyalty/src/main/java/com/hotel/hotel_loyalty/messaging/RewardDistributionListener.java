@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * Future listeners (email, voucher issuance, …) can subscribe to the
  * same event without touching this class.
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Component

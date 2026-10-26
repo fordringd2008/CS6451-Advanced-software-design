@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * UC4 page controller — renders the admin points-rule JSP.
  * First screen is JSTL server-rendered; create/update via fetch (JSP+AJAX).
  *
- * @author Fordring
+ * @author wukewei
  * @since 1.0
  */
 @Controller
