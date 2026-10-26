@@ -228,12 +228,6 @@ public class GuestPointsServiceImpl implements GuestPointsService {
             }
         }
 
-        // Deduct stock only after payment has settled successfully.
-        if (productMapper.deductStock(request.getPid(), SINGLE_ITEM_QUANTITY, now)
-                != SINGLE_ITEM_QUANTITY) {
-            throw new IllegalStateException("product is no longer in stock");
-        }
-
         // State Pattern — in-memory rule check (first line of defense).
         // OrderContext verifies the transition is legal; CAS below persists it safely.
         OrderContext orderCtx = OrderContext.fromDbStatus(oid, order.getStatus());
@@ -254,8 +248,10 @@ public class GuestPointsServiceImpl implements GuestPointsService {
         transaction.setGmtModified(now);
         pointsTransactionMapper.insert(transaction);
 
-        // Notify listeners (e.g. RewardDistributionListener) that points were
-        // deducted for this order — Event-Driven Architecture (document 5.0).
+        // Notify listeners that points were deducted for this order —
+        // Event-Driven Architecture (document 5.0). RewardDistributionListener
+        // runs synchronously within this transaction and deducts the product
+        // stock as the reward-distribution step.
         eventPublisher.publishEvent(
                 new PointsDeductedEvent(oid, request.getUid(), request.getPid(), request.getPointsUsed()));
         return oid;

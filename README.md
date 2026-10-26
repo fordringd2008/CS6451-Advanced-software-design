@@ -115,13 +115,14 @@ The database and mapper support transaction history through `PointsTransactionMa
 
 The guest redemption flow is implemented by `GuestPointsServiceImpl`:
 
-1. Load and validate the guest and product.
+1. Load and validate the guest and product (including an in-stock pre-check).
 2. Validate the selected payment strategy.
 3. Create a pending order.
-4. Atomically deduct points with an optimistic balance check.
-5. Deduct one unit of product stock.
-6. Mark the order as paid.
+4. Atomically deduct points with an optimistic balance check (compare-and-update).
+5. Settle the non-points portion through `PaymentGateway` (simulated cash charge or voucher redemption).
+6. Mark the order as paid through the `OrderContext` state pattern with a compare-and-update status transition.
 7. Insert a negative points transaction linked to the order.
+8. Publish a `PointsDeductedEvent`; `RewardDistributionListener` runs synchronously inside the same transaction and deducts one unit of product stock as the reward-distribution step.
 
 The My Redemptions tab reads the same paid order records through `OrderMapper.selectByUid`, so
 points-only, cash, and voucher redemptions are all represented after successful completion.
@@ -322,12 +323,16 @@ limits each handler to one business rule.
 
 ### 5.8 Observer / publish-subscribe event handling
 
-`RewardDistributionListener` and `PointsDeductedEvent` provide an application-level Observer /
-publish-subscribe extension point. The listener can observe a points-deducted event and keep
-reward distribution separate from point deduction. However, the current redemption path does
-not publish `PointsDeductedEvent`, so this event-driven reward-distribution path is a prepared
-extension rather than an active end-to-end flow. Additional listeners, such as notification or
-voucher issuance, can subscribe once event publication is wired into the redemption service.
+`RewardDistributionListener` and `PointsDeductedEvent` provide an active application-level
+Observer / publish-subscribe flow. When `GuestPointsServiceImpl.redeem` finishes deducting
+points, settling payment, and recording the order, it publishes a `PointsDeductedEvent`.
+`RewardDistributionListener` observes the event and deducts one unit of product stock as the
+reward-distribution step, keeping reward distribution separate from point deduction. Spring's
+synchronous `@EventListener` executes the listener inside the publisher's transaction, so the
+stock deduction participates in the same redemption transaction — atomicity is preserved while
+the logic stays decoupled (Open/Closed Principle). Additional listeners, such as notification
+or voucher issuance, can subscribe to the same event without touching the redemption service
+or this listener.
 
 ![Observer and event publication diagram](UML/observer_event.svg)
 
@@ -455,10 +460,12 @@ The schema is defined in [`schema.sql`](Project/hotel-loyalty/src/main/resources
 
 | Method | Endpoint | Purpose |
 |---|---|---|
+| GET | `/guest/{uid}/account` | Render the guest account page |
 | GET | `/guest/{uid}/points-mall` | Render the guest points mall |
 | GET | `/guest/{uid}/my-points` | Render balance and redemption page |
 | GET | `/guest/{uid}/confirm-payment/{pid}` | Render payment confirmation |
 | POST | `/guest/{uid}/redemptions` | Submit JSP redemption |
+| GET | `/api/guest/{uid}/account` | Get account data |
 | GET | `/api/guest/{uid}/points-mall` | Get mall data |
 | GET | `/api/guest/{uid}/my-points` | Get guest points data |
 | GET | `/api/guest/{uid}/confirm-payment/{pid}` | Get payment data |
@@ -532,6 +539,7 @@ The UI is server-rendered using JSP and JSTL.
 |---|---|
 | `login.jsp` | Guest login |
 | `admin_login.jsp` | Manager login |
+| `guest_account.jsp` | Show account information |
 | `guest_points_mall.jsp` | Browse products |
 | `guest_confirm_payment.jsp` | Select and confirm payment |
 | `guest_my_points.jsp` | Show balance and redemption records |
@@ -622,7 +630,7 @@ The repository currently contains a Spring context smoke test:
 src/test/java/com/hotel/hotel_loyalty/HotelLoyaltyApplicationTests.java
 ```
 
-The current automated suite contains 101 tests covering:
+The current automated suite contains 103 tests covering:
 
 1. Login, account-status, guest-ownership, and manager-role security behavior.
 2. Product create, update, delete, validation, and active-order protection.
@@ -631,20 +639,11 @@ The current automated suite contains 101 tests covering:
 5. Atomic balance, stock, order, and points-transaction changes.
 6. Voucher redemption transaction-history linkage.
 7. Manual-award queue processing and optimistic-lock retry behavior.
-8. Mapper, controller, service, state, and application-context behavior.
+8. Event-driven reward distribution: `PointsDeductedEvent` publication and listener stock deduction.
+9. Mapper, controller, service, state, and application-context behavior.
 
 The suite does not yet provide browser-level end-to-end coverage for every use case, real external
 payment-provider tests, points-rule calculation integration, or queue dead-letter operations.
-
-1. login and account-status security behavior;
-2. guest ownership isolation and manager role isolation;
-3. product create, update, delete, validation, and active-order protection;
-4. points-only, points-plus-cash, and points-plus-voucher validation;
-5. insufficient balance, minimum-point, supplement conversion, and out-of-stock redemption;
-6. atomic balance, stock, order, and transaction changes;
-7. voucher redemption transaction-history linkage;
-8. manual-award queue processing and optimistic-lock retry behavior;
-9. mapper, controller, service, state, and application-context behavior.
 
 The full suite currently passes with `./mvnw clean test`.
 
@@ -705,7 +704,9 @@ account viewing is complete; the remaining gap is order lifecycle behavior, not 
 
 ### Test coverage status
 
-The current automated suite contains 101 tests covering:
+The current automated suite contains 103 tests, all passing with `./mvnw clean test`; the covered
+areas are listed in section 12.
+
 ---
 
 ## 15. Conclusion
