@@ -27,7 +27,7 @@ class PointsPlusVoucherStrategyTest {
     @Test
     void testValidate_whenPointsAboveMinAndVoucherPositive_shouldSucceed() {
         // given
-        PaymentRequest req = voucherRequest(60, BigDecimal.TEN, 50, 100, 200);
+        PaymentRequest req = voucherRequest(60, new BigDecimal("4.00"), 50, 100, 200);
         // when
         PaymentResult result = strategy.validate(req);
         // then
@@ -37,7 +37,7 @@ class PointsPlusVoucherStrategyTest {
     @Test
     void testValidate_whenPointsExactlyAtMin_shouldSucceed() {
         // given: boundary — points exactly equal the minimum
-        PaymentRequest req = voucherRequest(50, BigDecimal.TEN, 50, 100, 200);
+        PaymentRequest req = voucherRequest(50, new BigDecimal("5.00"), 50, 100, 200);
         // when
         PaymentResult result = strategy.validate(req);
         // then

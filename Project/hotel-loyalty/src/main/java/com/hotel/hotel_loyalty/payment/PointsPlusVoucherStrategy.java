@@ -41,6 +41,9 @@ public class PointsPlusVoucherStrategy implements PaymentStrategy {
             return PaymentResult.fail("insufficient points: have "
                     + request.getUserCurrentPoint() + ", need " + request.getPointsUsed());
         }
+        if (request.getVoucherUsed().compareTo(PaymentAmountCalculator.calculateSupplement(request)) != 0) {
+            return PaymentResult.fail("voucher must equal the remaining points value at 1 point = 0.1 voucher");
+        }
         return PaymentResult.ok();
     }
 }

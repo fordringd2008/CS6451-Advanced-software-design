@@ -27,7 +27,7 @@ class PointsPlusCashStrategyTest {
     @Test
     void testValidate_whenPointsAboveMinAndCashPositive_shouldSucceed() {
         // given: points between min and full price, positive cash, balance enough
-        PaymentRequest req = cashRequest(60, BigDecimal.TEN, 50, 100, 200);
+        PaymentRequest req = cashRequest(60, new BigDecimal("4.00"), 50, 100, 200);
         // when
         PaymentResult result = strategy.validate(req);
         // then
@@ -37,7 +37,7 @@ class PointsPlusCashStrategyTest {
     @Test
     void testValidate_whenPointsExactlyAtMin_shouldSucceed() {
         // given: boundary — points exactly equal the minimum
-        PaymentRequest req = cashRequest(50, BigDecimal.TEN, 50, 100, 200);
+        PaymentRequest req = cashRequest(50, new BigDecimal("5.00"), 50, 100, 200);
         // when
         PaymentResult result = strategy.validate(req);
         // then

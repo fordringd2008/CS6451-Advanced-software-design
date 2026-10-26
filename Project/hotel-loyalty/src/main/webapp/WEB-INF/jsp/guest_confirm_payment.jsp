@@ -18,6 +18,8 @@
         .card { background: #FFFBF5; border: 1px solid #EAD9C2; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
         .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
         .row span:first-child { color: #96785A; } label { display: block; padding: 8px 0; font-size: 13px; }
+        .disabled-payment-method { color: #B8AA9A; cursor: not-allowed; }
+        .disabled-payment-method input { cursor: not-allowed; }
         input[type=number] { padding: 6px; border: 1px solid #EAD9C2; border-radius: 6px; width: 120px; }
         .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #C08B5C; background: #C08B5C;
             color: #FFFBF5; cursor: pointer; font-family: inherit; } .cancel { color: #8B6F47;
@@ -64,14 +66,20 @@
         <form id="redemption-form" class="card" method="post" action="${pageContext.request.contextPath}/guest/${uid}/redemptions">
             <input type="hidden" name="pid" value="${payment.pid}">
             <h3>Choose Payment Method</h3>
+            <c:set var="fullPointsOnly" value="${payment.totalPointsRequired == payment.minPointsRequired}"/>
             <c:forEach items="${payment.paymentMethods}" var="method" varStatus="status">
-                <label><input type="radio" name="pmid" value="${method.pmid}" ${status.first ? 'checked' : ''}>
+                <label class="${fullPointsOnly && !status.first ? 'disabled-payment-method' : ''}">
+                    <input type="radio" name="pmid" value="${method.pmid}"
+                        ${status.first ? 'checked' : ''}
+                        ${fullPointsOnly && !status.first ? 'disabled' : ''}>
                     <c:out value="${method.name}"/> (Type ${status.index + 1})</label>
             </c:forEach>
             <label>Points to use <input type="number" name="pointsUsed" min="${payment.minPointsRequired}"
                 max="${payment.availableBalance}" value="${payment.totalPointsRequired}" required></label>
-            <label>Cash supplement <input type="number" name="cashUsed" min="0" step="0.01"></label>
-            <label>Voucher supplement <input type="number" name="voucherUsed" min="0" step="0.01"></label>
+            <label id="cash-supplement">Cash supplement <input id="cash-used-display" type="number" min="0.01" step="0.01" disabled>
+                <input type="hidden" name="cashUsed"></label>
+            <label id="voucher-supplement">Voucher supplement <input id="voucher-used-display" type="number" min="0.01" step="0.01" disabled>
+                <input type="hidden" name="voucherUsed"></label>
             <button class="btn" type="button" id="confirm-payment">Confirm Payment</button>
             <a class="btn cancel" href="${pageContext.request.contextPath}/guest/${uid}/points-mall">Cancel</a>
         </form>
@@ -81,12 +89,17 @@
     <section class="modal">
         <div id="payment-form-state">
             <h3 id="payment-modal-title">Simulated Payment</h3>
-            <p>Enter the information below to simulate the external payment.</p>
-            <label>Card or account number <input id="account-number" type="text" inputmode="numeric"
-                autocomplete="off" required></label>
-            <label>Account name <input id="account-name" type="text" autocomplete="name" required></label>
-            <label>Payment password <input id="payment-password" type="password" inputmode="numeric"
-                minlength="4" autocomplete="off" required></label>
+            <p id="payment-instructions">Enter the information below to simulate the external payment.</p>
+            <div id="cash-payment-fields">
+                <label>Card or account number <input id="account-number" type="text" inputmode="numeric"
+                    autocomplete="off"></label>
+                <label>Account name <input id="account-name" type="text" autocomplete="name"></label>
+                <label>Payment password <input id="payment-password" type="password" inputmode="numeric"
+                    minlength="4" autocomplete="off"></label>
+            </div>
+            <div id="voucher-payment-fields">
+                <label>Voucher ID <input id="voucher-id" type="text" autocomplete="off"></label>
+            </div>
             <div class="modal-actions">
                 <button class="btn" type="button" id="start-payment">Pay Now</button>
                 <button class="btn cancel" type="button" id="close-payment">Cancel</button>
@@ -109,17 +122,63 @@
         var result = document.getElementById('payment-result');
         var startButton = document.getElementById('start-payment');
         var closeButton = document.getElementById('close-payment');
+        var cashSupplement = document.getElementById('cash-supplement');
+        var voucherSupplement = document.getElementById('voucher-supplement');
+        var cashPaymentFields = document.getElementById('cash-payment-fields');
+        var voucherPaymentFields = document.getElementById('voucher-payment-fields');
+        var paymentInstructions = document.getElementById('payment-instructions');
+        var pointsUsed = form.querySelector('input[name="pointsUsed"]');
+        var cashUsedDisplay = document.getElementById('cash-used-display');
+        var voucherUsedDisplay = document.getElementById('voucher-used-display');
+        var cashUsedSubmit = form.querySelector('input[name="cashUsed"]');
+        var voucherUsedSubmit = form.querySelector('input[name="voucherUsed"]');
         var paymentAttempt = 0;
 
+        function selectedPaymentMethod() {
+            return form.querySelector('input[name="pmid"]:checked').value;
+        }
+
+        function updatePaymentMethod() {
+            var method = selectedPaymentMethod();
+            var isCash = method === 'PM-2';
+            var isVoucher = method === 'PM-3';
+            cashSupplement.style.display = isCash ? 'block' : 'none';
+            voucherSupplement.style.display = isVoucher ? 'block' : 'none';
+            cashPaymentFields.style.display = isCash ? 'block' : 'none';
+            voucherPaymentFields.style.display = isVoucher ? 'block' : 'none';
+            paymentInstructions.textContent = isVoucher
+                ? 'Enter a voucher ID to simulate voucher verification.'
+                : 'Enter the information below to simulate the external payment.';
+            updateSupplement();
+        }
+
+        function updateSupplement() {
+            var method = selectedPaymentMethod();
+            var points = Number(pointsUsed.value);
+            var total = Number('${payment.totalPointsRequired}');
+            var supplement = Number.isFinite(points) && points < total
+                ? ((total - points) * 0.1).toFixed(2)
+                : '';
+            cashUsedDisplay.value = method === 'PM-2' ? supplement : '';
+            voucherUsedDisplay.value = method === 'PM-3' ? supplement : '';
+            cashUsedSubmit.value = method === 'PM-2' ? supplement : '';
+            voucherUsedSubmit.value = method === 'PM-3' ? supplement : '';
+        }
+
         function openModal() {
+            if (selectedPaymentMethod() === 'PM-1') {
+                form.submit();
+                return;
+            }
             paymentAttempt = 0;
             result.className = 'result';
             result.textContent = '';
             startButton.disabled = false;
             formState.style.display = 'block';
             status.classList.remove('show');
+            updatePaymentMethod();
             modal.classList.add('open');
-            document.getElementById('account-number').focus();
+            document.getElementById(selectedPaymentMethod() === 'PM-3' ? 'voucher-id' : 'account-number').focus();
         }
 
         function closeModal() {
@@ -127,18 +186,30 @@
         }
 
         document.getElementById('confirm-payment').addEventListener('click', openModal);
+        form.querySelectorAll('input[name="pmid"]').forEach(function (radio) {
+            radio.addEventListener('change', updatePaymentMethod);
+        });
+        pointsUsed.addEventListener('input', updateSupplement);
+        updatePaymentMethod();
         closeButton.addEventListener('click', closeModal);
         modal.addEventListener('click', function (event) {
             if (event.target === modal) closeModal();
         });
 
         startButton.addEventListener('click', function () {
+            var method = selectedPaymentMethod();
             var accountNumber = document.getElementById('account-number');
             var accountName = document.getElementById('account-name');
             var password = document.getElementById('payment-password');
-            if (!accountNumber.value.trim() || !accountName.value.trim() || password.value.length < 4) {
+            var voucherId = document.getElementById('voucher-id');
+            var invalidCashPayment = method === 'PM-2'
+                && (!accountNumber.value.trim() || !accountName.value.trim() || password.value.length < 4);
+            var invalidVoucherPayment = method === 'PM-3' && !voucherId.value.trim();
+            if (invalidCashPayment || invalidVoucherPayment) {
                 result.className = 'result failure show';
-                result.textContent = 'Please complete all fields. The password must have at least 4 characters.';
+                result.textContent = method === 'PM-3'
+                    ? 'Please enter a voucher ID.'
+                    : 'Please complete all fields. The password must have at least 4 characters.';
                 return;
             }
 
@@ -150,9 +221,14 @@
                 formState.style.display = 'block';
                 result.className = paymentAttempt % 2 === 1 ? 'result failure show' : 'result success show';
                 result.textContent = paymentAttempt % 2 === 1
-                    ? 'Payment failed in the simulation. Please try again.'
+                    ? (method === 'PM-3'
+                        ? 'Voucher ID not found. Please try again.'
+                        : 'Payment failed in the simulation. Please try again.')
                     : 'Payment successful. Confirming your redemption...';
                 if (paymentAttempt % 2 === 0) {
+                    if (method === 'PM-3') {
+                        form.querySelector('input[name="voucherUsed"]').value = '1.00';
+                    }
                     startButton.disabled = true;
                     window.setTimeout(function () { form.submit(); }, 600);
                 }

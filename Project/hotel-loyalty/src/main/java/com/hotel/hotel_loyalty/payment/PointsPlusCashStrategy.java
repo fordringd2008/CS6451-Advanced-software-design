@@ -40,6 +40,9 @@ public class PointsPlusCashStrategy implements PaymentStrategy {
             return PaymentResult.fail("insufficient points: have "
                     + request.getUserCurrentPoint() + ", need " + request.getPointsUsed());
         }
+        if (request.getCashUsed().compareTo(PaymentAmountCalculator.calculateSupplement(request)) != 0) {
+            return PaymentResult.fail("cash must equal the remaining points value at 1 point = 0.1 cash");
+        }
         return PaymentResult.ok();
     }
 }
