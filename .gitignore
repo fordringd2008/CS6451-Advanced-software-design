@@ -25,3 +25,10 @@ diff_review.txt
 mall*.html
 mypoints*.html
 confirm.html
+data/artemis/bindings/activemq-bindings-1.bindings
+data/artemis/bindings/activemq-bindings-2.bindings
+data/artemis/journal/activemq-data-1.amq
+data/artemis/journal/activemq-data-2.amq
+data/artemis/journal/server.lock
+data/artemis/journal/serverlock.1
+data/artemis/journal/serverlock.2
