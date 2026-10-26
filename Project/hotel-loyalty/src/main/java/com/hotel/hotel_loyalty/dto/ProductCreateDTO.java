@@ -3,6 +3,7 @@ package com.hotel.hotel_loyalty.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -20,6 +21,7 @@ public class ProductCreateDTO {
 
     /** Product image URL (GUI: image URL*). */
     @NotBlank(message = "image URL must not be blank")
+    @Size(max = 2048, message = "image URL must not exceed 2048 characters")
     private String imageUrl;
 
     /** Total points required (GUI: total points required*). */

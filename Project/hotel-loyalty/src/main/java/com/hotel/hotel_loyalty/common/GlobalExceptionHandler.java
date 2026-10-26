@@ -3,6 +3,7 @@ package com.hotel.hotel_loyalty.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +50,14 @@ public class GlobalExceptionHandler {
     public Result<Void> handleIllegalState(IllegalStateException e) {
         log.warn("conflict: {}", e.getMessage());
         return Result.fail(409, e.getMessage());
+    }
+
+    /** Database uniqueness conflict, such as a duplicate generated business key. */
+    @ExceptionHandler(DuplicateKeyException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Result<Void> handleDuplicateKey(DuplicateKeyException e) {
+        log.warn("database uniqueness conflict: {}", e.getMostSpecificCause().getMessage());
+        return Result.fail(409, "the submitted product conflicts with existing data");
     }
 
     /** Access denied (e.g. IDOR defense: path uid != session uid). */

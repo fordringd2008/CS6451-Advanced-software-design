@@ -36,3 +36,8 @@ INSERT INTO product (id, pid, name, image_url, total_points_required, min_points
 (4, 'P-004', 'Spa Day Pass',               'https://images.example.com/spa.jpg',      3000, 1000,  50,  50, '2026-01-03 00:00:00', '2026-01-03 00:00:00'),
 (5, 'P-005', 'Room Upgrade Voucher',       'https://images.example.com/room-upgrade.jpg', 8000, 3000, 30, 30, '2026-01-03 00:00:00', '2026-01-03 00:00:00'),
 (6, 'P-006', 'Weekend Stay Package',       'https://images.example.com/weekend-stay.jpg', 15000, 5000, 10, 10, '2026-01-03 00:00:00', '2026-01-03 00:00:00');
+
+-- Explicit seed IDs must advance H2 identity columns before user-created rows.
+ALTER TABLE payment_method ALTER COLUMN id RESTART WITH 4;
+ALTER TABLE "user" ALTER COLUMN id RESTART WITH 3;
+ALTER TABLE product ALTER COLUMN id RESTART WITH 7;

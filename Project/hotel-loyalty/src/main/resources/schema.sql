@@ -33,7 +33,7 @@ CREATE TABLE product (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
     pid                     VARCHAR(32)  NOT NULL,
     name                    VARCHAR(128) NOT NULL,
-    image_url               VARCHAR(256),
+    image_url               VARCHAR(2048),
     total_points_required   INT          NOT NULL,
     min_points_required     INT          NOT NULL,
     total_stock             INT          NOT NULL,

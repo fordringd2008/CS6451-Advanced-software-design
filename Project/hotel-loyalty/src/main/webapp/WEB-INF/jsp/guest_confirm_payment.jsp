@@ -43,6 +43,9 @@
         .result.show { display: block; }
         .result.success { color: #276749; background: #E8F5E9; border: 1px solid #A5D6A7; }
         .result.failure { color: #A05B3C; background: #FDECEA; border: 1px solid #F5C6CB; }
+        .form-error { display: none; color: #A05B3C; background: #FDECEA; border: 1px solid #F5C6CB;
+            border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-size: 13px; }
+        .form-error.show { display: block; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 700px) { .layout { display: block; } .sidebar { width: auto; display: flex; }
             .nav-item { padding: 12px; } .content { padding: 16px; } }
@@ -80,6 +83,7 @@
                 <input type="hidden" name="cashUsed"></label>
             <label id="voucher-supplement">Voucher supplement <input id="voucher-used-display" type="number" min="0.01" step="0.01" disabled>
                 <input type="hidden" name="voucherUsed"></label>
+            <div id="payment-error" class="form-error" role="alert"></div>
             <button class="btn" type="button" id="confirm-payment">Confirm Payment</button>
             <a class="btn cancel" href="${pageContext.request.contextPath}/guest/${uid}/points-mall">Cancel</a>
         </form>
@@ -132,6 +136,7 @@
         var voucherUsedDisplay = document.getElementById('voucher-used-display');
         var cashUsedSubmit = form.querySelector('input[name="cashUsed"]');
         var voucherUsedSubmit = form.querySelector('input[name="voucherUsed"]');
+        var paymentError = document.getElementById('payment-error');
         var paymentAttempt = 0;
 
         function selectedPaymentMethod() {
@@ -165,8 +170,29 @@
             voucherUsedSubmit.value = method === 'PM-3' ? supplement : '';
         }
 
+        function clearPaymentError() {
+            paymentError.className = 'form-error';
+            paymentError.textContent = '';
+        }
+
         function openModal() {
-            if (selectedPaymentMethod() === 'PM-1') {
+            var method = selectedPaymentMethod();
+            var points = Number(pointsUsed.value);
+            var total = Number('${payment.totalPointsRequired}');
+            var minimum = Number('${payment.minPointsRequired}');
+            clearPaymentError();
+            if (method !== 'PM-1' && points < minimum) {
+                paymentError.className = 'form-error show';
+                paymentError.textContent = 'Points to use must be at least ' + minimum
+                    + ' for this payment method.';
+                return;
+            }
+            if (method !== 'PM-1' && points >= total) {
+                paymentError.className = 'form-error show';
+                paymentError.textContent = 'Points must be less than the full product price for this payment method.';
+                return;
+            }
+            if (method === 'PM-1') {
                 form.submit();
                 return;
             }
@@ -190,6 +216,10 @@
             radio.addEventListener('change', updatePaymentMethod);
         });
         pointsUsed.addEventListener('input', updateSupplement);
+        pointsUsed.addEventListener('input', clearPaymentError);
+        form.querySelectorAll('input[name="pmid"]').forEach(function (radio) {
+            radio.addEventListener('change', clearPaymentError);
+        });
         updatePaymentMethod();
         closeButton.addEventListener('click', closeModal);
         modal.addEventListener('click', function (event) {
@@ -226,9 +256,6 @@
                         : 'Payment failed in the simulation. Please try again.')
                     : 'Payment successful. Confirming your redemption...';
                 if (paymentAttempt % 2 === 0) {
-                    if (method === 'PM-3') {
-                        form.querySelector('input[name="voucherUsed"]').value = '1.00';
-                    }
                     startButton.disabled = true;
                     window.setTimeout(function () { form.submit(); }, 600);
                 }

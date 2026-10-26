@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -74,6 +75,24 @@ class GuestPointsServiceImplIntegrationTest {
         assertThat(txs).hasSize(1);
         assertThat(txs.get(0).getPointsChange()).isEqualTo(-800);
         assertThat(txs.get(0).getType()).isEqualTo("REDEEM");
+    }
+
+    @Test
+    void testRedeem_whenVoucherPayment_shouldRecordPointsTransaction() {
+        // given: P-003 costs 800, minimum 400; 600 points leaves a 20.00 voucher
+        RedemptionRequest request = redeemRequest("guest", "P-003", "PM-3", 600);
+        request.setVoucherUsed(new BigDecimal("20.00"));
+
+        // when
+        String oid = guestPointsService.redeem(request);
+
+        // then: the deduction is visible in the account history and linked to the paid order
+        List<PointsTransactionDO> history = pointsTransactionMapper.selectByUid("guest");
+        assertThat(history).anySatisfy(transaction -> {
+            assertThat(transaction.getRelatedOrderId()).isEqualTo(oid);
+            assertThat(transaction.getPointsChange()).isEqualTo(-600);
+            assertThat(transaction.getType()).isEqualTo("REDEEM");
+        });
     }
 
     @Test
