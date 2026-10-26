@@ -97,14 +97,18 @@ class PointsAdjustmentMessagingTest {
     }
 
     @Test
-    @DisplayName("PointsDeductedEvent published → RewardDistributionListener deducts stock")
-    void testOnPointsDeducted_whenEventPublished_shouldDeductStock() {
+    @DisplayName("PointsDeductedEvent published → listener does NOT deduct stock (by design)")
+    void testOnPointsDeducted_whenEventPublished_shouldNotDeductStock() {
+        // Design decision: stock deduction stays inside the redemption
+        // transaction (GuestPointsServiceImpl.redeem, explicit concurrency
+        // control via deductStock). The listener is notification-only —
+        // this test locks that decision so it is not changed by accident.
         // given: seed product P-003 has 200 in stock
         int stockBefore = productMapper.selectByPid("P-003").getRemainingStock();
         // when: a PointsDeductedEvent is published (in-process, synchronous)
         eventPublisher.publishEvent(new PointsDeductedEvent("O-1", "guest", "P-003", 800));
-        // then: listener deducts 1 unit from the product stock
+        // then: stock is unchanged — the listener only logs, it does not deduct
         ProductDO product = productMapper.selectByPid("P-003");
-        assertThat(product.getRemainingStock()).isEqualTo(stockBefore - 1);
+        assertThat(product.getRemainingStock()).isEqualTo(stockBefore);
     }
 }
