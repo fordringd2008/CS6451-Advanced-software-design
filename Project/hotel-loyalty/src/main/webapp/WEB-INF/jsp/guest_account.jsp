@@ -46,7 +46,7 @@
             <div class="profile-row"><span>Status</span><strong><c:out value="${account.statusLabel}"/></strong></div>
             <div class="profile-row"><span>Member Level</span><strong><c:out value="${account.levelLabel}"/></strong></div>
             <div class="profile-row"><span>Current Points</span><strong>${account.currentPoint} pts</strong></div>
-            <div class="profile-row"><span>Registered</span><strong>${account.registerTime}</strong></div>
+            <div class="profile-row"><span>Registered</span><strong><c:out value="${account.registerTimeDisplay}"/></strong></div>
         </div>
     </main>
 </div>

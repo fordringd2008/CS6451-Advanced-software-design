@@ -1,5 +1,6 @@
 package com.hotel.hotel_loyalty.vo;
 
+import com.hotel.hotel_loyalty.common.DateTimeDisplayFormatter;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -28,4 +29,8 @@ public class PointsHistoryVO {
 
     /** Transaction time (GUI: "2025-10-14"). */
     private LocalDateTime gmtCreate;
+
+    public String getGmtCreateDisplay() {
+        return DateTimeDisplayFormatter.format(gmtCreate);
+    }
 }

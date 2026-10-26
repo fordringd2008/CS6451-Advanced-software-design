@@ -1,5 +1,6 @@
 package com.hotel.hotel_loyalty.vo;
 
+import com.hotel.hotel_loyalty.common.DateTimeDisplayFormatter;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -39,4 +40,8 @@ public class AccountVO {
 
     /** Registration time. */
     private LocalDateTime registerTime;
+
+    public String getRegisterTimeDisplay() {
+        return DateTimeDisplayFormatter.format(registerTime);
+    }
 }

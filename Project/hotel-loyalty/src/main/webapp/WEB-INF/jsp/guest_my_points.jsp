@@ -54,7 +54,7 @@
             <div class="card"><span class="label">Level</span><span class="value"><c:out value="${points.levelLabel}"/></span></div>
             <div class="card"><span class="label">Available Points</span><span class="value">${points.currentPoint} pts</span></div>
         </div>
-        <p>Registered: ${points.registerTime}</p>
+        <p>Registered: <c:out value="${points.registerTimeDisplay}"/></p>
         <div class="tabs">
             <a class="tab" data-tab="history" href="javascript:void(0)" onclick="showTab('history')">Points History</a>
             <a class="tab active" data-tab="redemptions" href="javascript:void(0)" onclick="showTab('redemptions')">My Redemptions</a>
@@ -68,7 +68,7 @@
                         <td><c:out value="${txn.type}"/></td>
                         <td><c:choose><c:when test="${txn.pointsChange >= 0}"><span class="earn">+${txn.pointsChange} pts</span></c:when><c:otherwise><span class="redeem">${txn.pointsChange} pts</span></c:otherwise></c:choose></td>
                         <td><c:choose><c:when test="${not empty txn.relatedOrderId}"><c:out value="${txn.relatedOrderId}"/></c:when><c:otherwise>—</c:otherwise></c:choose></td>
-                        <td>${txn.gmtCreate}</td>
+                        <td><c:out value="${txn.gmtCreateDisplay}"/></td>
                     </tr></c:forEach></tbody></table></c:otherwise>
             </c:choose>
         </section>
@@ -78,7 +78,7 @@
                 <c:otherwise><table><thead><tr><th>Order</th><th>Product</th><th>Points Used</th><th>Status</th><th>Date</th></tr></thead>
                     <tbody><c:forEach items="${points.redemptions}" var="record"><tr>
                         <td><c:out value="${record.oid}"/></td><td><c:out value="${record.productName}"/></td>
-                        <td>-${record.pointsUsed} pts</td><td><c:out value="${record.statusLabel}"/></td><td>${record.gmtCreate}</td>
+                        <td>-${record.pointsUsed} pts</td><td><c:out value="${record.statusLabel}"/></td><td><c:out value="${record.gmtCreateDisplay}"/></td>
                     </tr></c:forEach></tbody></table></c:otherwise>
             </c:choose>
         </section>
