@@ -34,6 +34,11 @@ The implementation also demonstrates several software-design techniques:
 
 The implemented package flow is shown in [`layered_architecture.svg`](UML/layered_architecture.svg).
 
+The design-time package boundaries are shown in [`package_diagram.svg`](UML/package_diagram.svg).
+The runtime component collaboration is shown in [`component_diagram.svg`](UML/component_diagram.svg),
+and the single-host deployment topology is shown in
+[`deployment_diagram.svg`](UML/deployment_diagram.svg).
+
 The payment design is a **Strategy pattern**, shown in [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg).
 It is not a Chain of Responsibility: `PaymentStrategyFactory` selects exactly one strategy from
 `PaymentTypeEnum`, and strategies do not pass an unhandled request to one another. The controller and

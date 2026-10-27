@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="780" viewBox="0 0 1360 780">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 24px Arial, sans-serif; fill: #0f172a }
+      .node { fill: #f8fafc; stroke: #334155; stroke-width: 2 }
+      .artifact { fill: #dbeafe; stroke: #2563eb; stroke-width: 2 }
+      .store { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2 }
+      .queue { fill: #fefce8; stroke: #ca8a04; stroke-width: 2 }
+      .name { font: 700 17px Arial, sans-serif; fill: #0f172a }
+      .small { font: 14px Arial, sans-serif; fill: #334155 }
+      .edge { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow) }
+      .label { font: 13px Arial, sans-serif; fill: #475569 }
+    </style>
+  </defs>
+  <rect width="1360" height="780" fill="#ffffff"/>
+  <text x="680" y="38" text-anchor="middle" class="title">Hotel Loyalty - Deployment Diagram</text>
+  <text x="680" y="62" text-anchor="middle" class="label">Development and single-host deployment topology</text>
+
+  <g transform="translate(55 120)">
+    <rect class="node" width="245" height="190" rx="8"/>
+    <text x="122" y="34" text-anchor="middle" class="name">Client device</text>
+    <text x="20" y="70" class="small">Web browser</text>
+    <text x="20" y="98" class="small">Guest or manager portal</text>
+    <text x="20" y="126" class="small">HTTP and session cookies</text>
+    <text x="20" y="154" class="small">JSP rendering and fetch API</text>
+  </g>
+
+  <g transform="translate(390 90)">
+    <rect class="node" width="390" height="300" rx="8"/>
+    <text x="195" y="34" text-anchor="middle" class="name">Application host</text>
+    <text x="20" y="62" class="small">JDK 21 runtime</text>
+    <rect class="artifact" x="35" y="85" width="320" height="80" rx="5"/>
+    <text x="195" y="116" text-anchor="middle" class="name">hotel-loyalty application</text>
+    <text x="195" y="141" text-anchor="middle" class="small">Spring Boot 4.0.8 executable process</text>
+    <rect class="artifact" x="35" y="190" width="320" height="80" rx="5"/>
+    <text x="195" y="221" text-anchor="middle" class="name">Embedded web server</text>
+    <text x="195" y="246" text-anchor="middle" class="small">Spring MVC, JSP, Spring Security</text>
+  </g>
+
+  <g transform="translate(885 90)">
+    <rect class="store" width="265" height="140" rx="8"/>
+    <text x="132" y="34" text-anchor="middle" class="name">File storage</text>
+    <text x="20" y="70" class="small">H2 database</text>
+    <text x="20" y="96" class="small">./data/hotelloyalty.mv.db</text>
+    <text x="20" y="122" class="small">Schema and seed data</text>
+  </g>
+  <g transform="translate(885 300)">
+    <rect class="queue" width="265" height="140" rx="8"/>
+    <text x="132" y="34" text-anchor="middle" class="name">Message storage</text>
+    <text x="20" y="70" class="small">Embedded Artemis broker</text>
+    <text x="20" y="96" class="small">Persistent journal and bindings</text>
+    <text x="20" y="122" class="small">queue.points.adjustment</text>
+  </g>
+
+  <g transform="translate(390 520)">
+    <rect class="node" width="390" height="145" rx="8"/>
+    <text x="195" y="34" text-anchor="middle" class="name">Project workspace</text>
+    <text x="20" y="70" class="small">Maven wrapper and pom.xml</text>
+    <text x="20" y="96" class="small">src/main/resources/application.yaml</text>
+    <text x="20" y="122" class="small">data/artemis and data/hotelloyalty</text>
+  </g>
+
+  <path class="edge" d="M300 215 L390 215"/>
+  <path class="edge" d="M780 190 L885 160"/>
+  <path class="edge" d="M780 270 C830 300 845 350 885 370"/>
+  <path class="edge" d="M585 390 L585 520"/>
+  <text x="330" y="202" class="label">HTTP :8080</text>
+  <text x="800" y="166" class="label">JDBC</text>
+  <text x="800" y="305" class="label">JMS</text>
+  <text x="605" y="465" class="label">reads configuration and writes local data</text>
+
+  <g transform="translate(55 520)">
+    <rect class="node" width="245" height="145" rx="8"/>
+    <text x="122" y="34" text-anchor="middle" class="name">External services</text>
+    <text x="20" y="70" class="small">None required at runtime</text>
+    <text x="20" y="96" class="small">PaymentGateway is simulated</text>
+    <text x="20" y="122" class="small">No remote provider dependency</text>
+  </g>
+</svg>

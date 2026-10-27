@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="820" viewBox="0 0 1360 820">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 24px Arial, sans-serif; fill: #0f172a }
+      .box { fill: #eff6ff; stroke: #2563eb; stroke-width: 2 }
+      .infra { fill: #fefce8; stroke: #ca8a04; stroke-width: 2 }
+      .data { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2 }
+      .external { fill: #f8fafc; stroke: #64748b; stroke-width: 2 }
+      .name { font: 700 16px Arial, sans-serif; fill: #0f172a }
+      .small { font: 13px Arial, sans-serif; fill: #334155 }
+      .edge { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow) }
+      .async { stroke: #9333ea; stroke-width: 2; stroke-dasharray: 8 6; fill: none; marker-end: url(#arrow) }
+      .label { font: 13px Arial, sans-serif; fill: #475569 }
+    </style>
+  </defs>
+  <rect width="1360" height="820" fill="#ffffff"/>
+  <text x="680" y="38" text-anchor="middle" class="title">Hotel Loyalty - Runtime Component Diagram</text>
+  <text x="680" y="62" text-anchor="middle" class="label">Spring MVC, service orchestration, MyBatis persistence, and JMS event processing</text>
+
+  <rect x="35" y="95" width="1290" height="660" rx="10" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="55" y="122" class="name">hotel-loyalty Spring Boot application</text>
+
+  <g transform="translate(75 180)">
+    <rect class="external" width="190" height="105" rx="5"/>
+    <text x="95" y="30" text-anchor="middle" class="name">Guest browser</text>
+    <text x="18" y="60" class="small">JSP pages and fetch API</text>
+    <text x="18" y="82" class="small">Guest role</text>
+  </g>
+  <g transform="translate(75 420)">
+    <rect class="external" width="190" height="105" rx="5"/>
+    <text x="95" y="30" text-anchor="middle" class="name">Manager browser</text>
+    <text x="18" y="60" class="small">Admin JSP and REST API</text>
+    <text x="18" y="82" class="small">Manager role</text>
+  </g>
+
+  <g transform="translate(350 150)">
+    <rect class="box" width="225" height="125" rx="5"/>
+    <text x="112" y="29" text-anchor="middle" class="name">Presentation</text>
+    <text x="18" y="60" class="small">GuestJspController</text>
+    <text x="18" y="82" class="small">AdminProductController</text>
+    <text x="18" y="104" class="small">REST controllers and advice</text>
+  </g>
+  <g transform="translate(350 390)">
+    <rect class="infra" width="225" height="125" rx="5"/>
+    <text x="112" y="29" text-anchor="middle" class="name">Security boundary</text>
+    <text x="18" y="60" class="small">SecurityFilterChain</text>
+    <text x="18" y="82" class="small">Session authentication</text>
+    <text x="18" y="104" class="small">Guest and manager RBAC</text>
+  </g>
+
+  <g transform="translate(660 150)">
+    <rect class="box" width="250" height="125" rx="5"/>
+    <text x="125" y="29" text-anchor="middle" class="name">Business services</text>
+    <text x="18" y="60" class="small">GuestPointsService</text>
+    <text x="18" y="82" class="small">Product and rule services</text>
+    <text x="18" y="104" class="small">PointsAdjustmentService</text>
+  </g>
+  <g transform="translate(660 390)">
+    <rect class="infra" width="250" height="125" rx="5"/>
+    <text x="125" y="29" text-anchor="middle" class="name">Domain policies</text>
+    <text x="18" y="60" class="small">PaymentStrategyFactory</text>
+    <text x="18" y="82" class="small">OrderContext state pattern</text>
+    <text x="18" y="104" class="small">Optimistic updates</text>
+  </g>
+
+  <g transform="translate(1000 150)">
+    <rect class="data" width="245" height="125" rx="5"/>
+    <text x="122" y="29" text-anchor="middle" class="name">MyBatis data access</text>
+    <text x="18" y="60" class="small">User, product, order mappers</text>
+    <text x="18" y="82" class="small">Rule and transaction mappers</text>
+    <text x="18" y="104" class="small">XML-free annotation mappings</text>
+  </g>
+  <g transform="translate(1000 390)">
+    <rect class="infra" width="245" height="125" rx="5"/>
+    <text x="122" y="29" text-anchor="middle" class="name">JMS messaging</text>
+    <text x="18" y="60" class="small">PointsAdjustmentProducer</text>
+    <text x="18" y="82" class="small">PointsAdjustmentConsumer</text>
+    <text x="18" y="104" class="small">RewardDistributionListener</text>
+  </g>
+
+  <g transform="translate(470 620)">
+    <rect class="data" width="230" height="90" rx="5"/>
+    <text x="115" y="29" text-anchor="middle" class="name">H2 database</text>
+    <text x="18" y="59" class="small">File database: hotelloyalty</text>
+    <text x="18" y="80" class="small">Six business tables</text>
+  </g>
+  <g transform="translate(790 620)">
+    <rect class="infra" width="230" height="90" rx="5"/>
+    <text x="115" y="29" text-anchor="middle" class="name">Embedded Artemis</text>
+    <text x="18" y="59" class="small">Persistent adjustment queue</text>
+    <text x="18" y="80" class="small">queue.points.adjustment</text>
+  </g>
+
+  <path class="edge" d="M265 230 L350 210"/>
+  <path class="edge" d="M265 470 L350 450"/>
+  <path class="edge" d="M462 275 L462 390"/>
+  <path class="edge" d="M575 210 L660 210"/>
+  <path class="edge" d="M575 450 L660 450"/>
+  <path class="edge" d="M910 210 L1000 210"/>
+  <path class="edge" d="M785 275 L785 390"/>
+  <path class="edge" d="M910 450 L1000 450"/>
+  <path class="edge" d="M1122 275 L1122 620"/>
+  <path class="async" d="M910 235 C945 300 1010 330 1080 390"/>
+  <path class="async" d="M1122 515 C1080 570 930 580 905 620"/>
+  <text x="936" y="320" class="label">publish adjustment</text>
+  <text x="1015" y="575" class="label">consume asynchronously</text>
+  <text x="287" y="205" class="label">HTTP</text>
+  <text x="585" y="195" class="label">delegate</text>
+  <text x="925" y="195" class="label">query</text>
+</svg>
