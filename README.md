@@ -13,7 +13,24 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Business Scenario
+
+Hotel guests earn and spend loyalty points. The hotel publishes redeemable products in a points mall, such as benefits or hotel-related rewards. A guest can use points alone or use a combination of points and another instrument, currently cash or voucher.
+
+Managers maintain the product catalogue and the rules used to describe how points are earned. They can also manually award points to a guest. Manual awards are queued so that temporary processing failures do not cause the request to be lost.
+
+The main business invariants are:
+
+- A guest must be authenticated and must access only their own resources.
+- A manager-only operation must not be available to a guest.
+- A redemption cannot use more points than the guest owns.
+- A redemption cannot use an unavailable product.
+- Remaining stock must not become negative.
+- A product with active orders cannot be deleted.
+- Every redemption and manual award creates a signed points transaction.
+---
+
+## 2. Executive Summary
 
 Hotel Loyalty is a web application for managing a hotel's guest loyalty points and points-mall products. It supports two authenticated user roles:
 
@@ -59,23 +76,6 @@ the optimistic compare-and-update also turns concurrent balance conflicts into r
 
 This report describes the implemented system rather than the original conceptual model. Where a use case or UML artifact describes planned behavior that is not yet connected to the running code, it is explicitly marked as a gap.
 
----
-
-## 2. Business Scenario
-
-Hotel guests earn and spend loyalty points. The hotel publishes redeemable products in a points mall, such as benefits or hotel-related rewards. A guest can use points alone or use a combination of points and another instrument, currently cash or voucher.
-
-Managers maintain the product catalogue and the rules used to describe how points are earned. They can also manually award points to a guest. Manual awards are queued so that temporary processing failures do not cause the request to be lost.
-
-The main business invariants are:
-
-- A guest must be authenticated and must access only their own resources.
-- A manager-only operation must not be available to a guest.
-- A redemption cannot use more points than the guest owns.
-- A redemption cannot use an unavailable product.
-- Remaining stock must not become negative.
-- A product with active orders cannot be deleted.
-- Every redemption and manual award creates a signed points transaction.
 
 ---
 
