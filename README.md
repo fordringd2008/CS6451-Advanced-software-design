@@ -32,23 +32,30 @@ The implementation also demonstrates several software-design techniques:
 
 ### Architecture diagrams
 
-The implemented package flow is shown in [`layered_architecture.svg`](UML/layered_architecture.svg).
+![Layered architecture diagram](UML/layered_architecture.svg)
 
 The design-time package boundaries are shown in [`package_diagram.svg`](UML/package_diagram.svg).
-The runtime component collaboration is shown in [`component_diagram.svg`](UML/component_diagram.svg),
-and the single-host deployment topology is shown in
-[`deployment_diagram.svg`](UML/deployment_diagram.svg).
+The runtime component collaboration is shown below.
 
-The payment design is a **Strategy pattern**, shown in [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg).
+![Component diagram](UML/component_diagram.svg)
+
+The single-host deployment topology is shown below.
+
+![Deployment diagram](UML/deployment_diagram.svg)
+
+The payment design is a **Strategy pattern**, shown below.
 It is not a Chain of Responsibility: `PaymentStrategyFactory` selects exactly one strategy from
 `PaymentTypeEnum`, and strategies do not pass an unhandled request to one another. The controller and
 service call the selected strategy directly.
 
-The asynchronous points-adjustment flow and its reliability controls are shown in
-[`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg). The manager request
+![Payment strategy UML diagram](UML/payment_strategy_uml.svg)
+
+The asynchronous points-adjustment flow and its reliability controls are shown below. The manager request
 is validated and placed on the persistent `queue.points.adjustment` Artemis queue. The listener updates
 the user balance and writes the transaction. An exception rolls back processing and causes redelivery;
 the optimistic compare-and-update also turns concurrent balance conflicts into retryable failures.
+
+![Message-driven points adjustment diagram](UML/message_driven_points_adjustment.svg)
 
 This report describes the implemented system rather than the original conceptual model. Where a use case or UML artifact describes planned behavior that is not yet connected to the running code, it is explicitly marked as a gap.
 
@@ -250,7 +257,7 @@ ProductManagementController
 
 This keeps HTTP concerns separate from business validation and database access.
 
-See [`layered_architecture.svg`](UML/layered_architecture.svg) for the package-level diagram.
+![Layered package architecture diagram](UML/layered_architecture.svg)
 
 ### 5.2 Strategy pattern for payment
 
@@ -262,8 +269,7 @@ See [`layered_architecture.svg`](UML/layered_architecture.svg) for the package-l
 
 `PaymentStrategyFactory` selects a strategy by `PaymentTypeEnum`. A new payment instrument can therefore be added as another strategy without changing the main redemption orchestration.
 
-The class relationship and concrete implementations are shown in
-[`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg). This is not a Chain of Responsibility:
+The class relationship and concrete implementations are shown above. This is not a Chain of Responsibility:
 there is no sequential handler chain, fallback handler, or `next` reference.
 
 ![Payment strategy UML diagram](UML/payment_strategy_uml.svg)
@@ -287,8 +293,7 @@ The current guest redemption service persists order status directly as part of t
 
 Manual point awards are decoupled from the manager request through Artemis JMS. The producer acknowledges the request by enqueueing it, while the consumer performs the balance update and transaction insert. An exception allows the broker to redeliver the message.
 
-The queue, producer, consumer, database writes, and retry path are shown in
-[`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg). Persistent delivery,
+The queue, producer, consumer, database writes, and retry path are shown above. Persistent delivery,
 listener rollback/redelivery, and optimistic locking provide the implementation's reliability mechanism;
 there is no claim of exactly-once processing beyond the current transaction and message configuration.
 
