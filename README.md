@@ -757,20 +757,20 @@ The implementation is intentionally a single deployable Spring Boot application.
 embedded Artemis keep the academic prototype self-contained; they are replaceable
 infrastructure choices rather than business-domain dependencies.
 
-### Technical references
+### Technology and theory references
 
-1. Spring Boot Reference Documentation: <https://docs.spring.io/spring-boot/>
-2. Spring Framework Web MVC Documentation: <https://docs.spring.io/spring-framework/reference/web/webmvc.html>
-3. Spring Security Reference: <https://docs.spring.io/spring-security/reference/>
-4. MyBatis Documentation: <https://mybatis.org/mybatis-3/>
-5. H2 Database Documentation: <https://h2database.com/html/main.html>
-6. Apache ActiveMQ Artemis Documentation: <https://activemq.apache.org/components/artemis/documentation/>
-7. Springdoc OpenAPI Documentation: <https://springdoc.org/>
-8. JUnit 5 User Guide: <https://junit.org/junit5/docs/current/user-guide/>
-9. Bass, L., Clements, P., and Kazman, R., *Software Architecture in Practice*, 4th ed.,
-   Addison-Wesley, 2021. Used for quality attributes, tactics, and architectural reasoning.
-10. The project assignment workbook, `SE Design Project.xlsx`, supplied for the CS6451
-    design project. Its requirements are mapped to project evidence in the next section.
+The implementation and design discussion are grounded in the five references listed in
+Section 25. The correspondence is:
+
+- **Architecture and quality attributes:** Bass, Clements, and Kazman.
+- **Strategy, State, Observer, Factory, and Chain of Responsibility:** Gamma et al.
+- **MVC, Data Mapper, and transaction-script/service-layer separation:** Fowler.
+- **Spring MVC, dependency injection, Spring Security, and Spring Boot:** Walls.
+- **Agile lifecycle, principles, and the complexity/agility trade-off:** Martin.
+
+The online framework documentation used for implementation verification is linked in the
+technology table where appropriate; it is not counted as part of the formal five-item
+reference list.
 
 ---
 
@@ -799,7 +799,7 @@ has been implemented.
 | 11 Critique | Maximum one-page critique of design and implementation quality | Section 22 | Added |
 | 12 Reflection | A section entitled “Reflection” with a learning account for each team member | Section 23 | Fordring drafted; Franklin entry requires confirmation |
 | 13 AI list | List of prompts and generative-AI platforms used | Section 24 | Added; update with final prompt history |
-| 14 References | Academic, technical, and project references | Section 16 and Section 25 | Added |
+| 14 References | Academic and technical references | Section 16 and Section 25 | Added |
 
 For final export, the report should retain sections 1–25 in order and include the linked
 SVG diagrams as figures or an appendix. The assignment page limits apply to the named
@@ -986,16 +986,27 @@ unnecessary private data must not be included.
 
 ## 25. References and Submission Checklist
 
-### Project references
+### Formal reference list
 
-- [`Use_case_1.0.xlsx`](UseCases/Use_case_1.0.xlsx)
-- [`Use_Case_Description_UC3_UC6_v1.1.xlsx`](UseCases/Use_Case_Description_UC3_UC6_v1.1.xlsx)
-- [`candidate_objects_1.0.xlsx`](Document/candidate_objects_1.0.xlsx)
-- [`3.1 business scenario`](Document/3.1%20A%20one-page%20(maximum)%20narrative%20description%20of%20your%20business%20scenario.docx)
-- [`3.2 lifecycle discussion`](Document/3.2%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20manageme.docx)
-- [`5.0 architecture discussion`](Document/5.0%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20at%20least%20one%20high-level%20pac.docx)
-- [`Project plan`](Plan/-v1.0-3-10-2026.xlsx)
-- [`GitHub repository`](https://github.com/fordringd2008/CS6451-Advanced-software-design)
+1. Bass, Len, Paul Clements, and Rick Kazman (2013). *Software Architecture in
+   Practice* (3rd ed.). Addison-Wesley. Used for architectural drivers, quality
+   attributes, tactics, and architecture evaluation.
+2. Gamma, Erich, Richard Helm, Ralph Johnson, and John Vlissides (1994). *Design
+   Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley. Used for
+   Strategy, State, Observer, Factory, and Chain of Responsibility patterns.
+3. Fowler, Martin (2002). *Patterns of Enterprise Application Architecture*.
+   Addison-Wesley. Used for MVC, service-layer separation, Data Mapper, and enterprise
+   application structuring.
+4. Walls, Craig (2022). *Spring in Action* (6th ed.). Manning Publications. Used for
+   Spring Boot, Spring MVC, dependency injection, web security, and application
+   configuration.
+5. Martin, Robert C. (2002). *Agile Software Development: Principles, Patterns, and
+   Practices*. Prentice Hall. Used for the lifecycle discussion, iterative refinement,
+   SOLID principles, and the balance between complexity management and agility.
+
+The repository files, UML diagrams, use-case workbooks, and GitHub history are project
+evidence rather than bibliographic references. They are cited in the traceability matrix
+and supporting-artifact sections above.
 
 ### Final export checklist
 
