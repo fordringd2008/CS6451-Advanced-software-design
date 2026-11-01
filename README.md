@@ -727,3 +727,273 @@ The current project is a working academic prototype of a hotel loyalty points ma
 The main differences between the original design documents and the current code are implementation-level rather than architectural: the application uses role-based persistence instead of user inheritance, strategy classes instead of payment-method subclasses, and service/mapper layers instead of domain objects containing all behavior.
 
 The next meaningful step is to show product availability more explicitly and connect managed points rules to an actual points-earning workflow. Once those are implemented and covered by browser-level tests, the project will have much stronger traceability from the use-case catalogue through the UML artifacts to the running application.
+
+---
+
+## 16. Technology Stack and Technical References
+
+This section identifies the technologies used by the implemented system and the role of
+each technology in the solution.
+
+| Area | Technology | Use in this project |
+|---|---|---|
+| Language/runtime | Java 21 | Application source, domain objects, services, tests, and build target |
+| Application framework | Spring Boot 4.0.8 | Application bootstrapping, auto-configuration, dependency management, and embedded server |
+| Web layer | Spring MVC / WebMVC | REST controllers, page controllers, request binding, validation, and exception handling |
+| Presentation | JSP, JSTL, HTML, CSS, JavaScript | Server-rendered guest and manager pages and browser-side API calls |
+| Security | Spring Security, BCrypt | Session authentication, guest/manager role-based authorization, password hashing, and ownership checks |
+| Persistence | MyBatis 4.0.1 | Data Mapper interfaces and SQL-backed access to the application tables |
+| Database | H2 Database | Local file-mode relational database for development, demonstration, and automated tests |
+| Messaging | Jakarta Messaging (JMS), embedded Apache ActiveMQ Artemis | Persistent queue and asynchronous processing of manager point adjustments |
+| API documentation | Springdoc OpenAPI 3.1.1, Swagger UI | OpenAPI 3 document and interactive API documentation |
+| Validation | Jakarta Bean Validation / Spring Boot validation | DTO constraints and fail-fast request validation |
+| Build | Apache Maven and Maven Wrapper | Reproducible dependency resolution, compilation, testing, and packaging |
+| Testing | JUnit 5, Spring Boot test support, Spring Security Test, MyBatis test support | Unit, integration, controller, security, service, mapper, and context tests |
+| Code generation | Lombok | Reduced boilerplate for selected Java model and service classes |
+| Modelling | UML/SVG, Excel use-case and candidate-object workbooks | Requirements, class, sequence, state, component, deployment, package, and data-model communication |
+| Version control | Git and GitHub | Source history, collaboration, traceability, and version-control evidence |
+
+The implementation is intentionally a single deployable Spring Boot application. H2 and
+embedded Artemis keep the academic prototype self-contained; they are replaceable
+infrastructure choices rather than business-domain dependencies.
+
+### Technical references
+
+1. Spring Boot Reference Documentation: <https://docs.spring.io/spring-boot/>
+2. Spring Framework Web MVC Documentation: <https://docs.spring.io/spring-framework/reference/web/webmvc.html>
+3. Spring Security Reference: <https://docs.spring.io/spring-security/reference/>
+4. MyBatis Documentation: <https://mybatis.org/mybatis-3/>
+5. H2 Database Documentation: <https://h2database.com/html/main.html>
+6. Apache ActiveMQ Artemis Documentation: <https://activemq.apache.org/components/artemis/documentation/>
+7. Springdoc OpenAPI Documentation: <https://springdoc.org/>
+8. JUnit 5 User Guide: <https://junit.org/junit5/docs/current/user-guide/>
+9. Bass, L., Clements, P., and Kazman, R., *Software Architecture in Practice*, 4th ed.,
+   Addison-Wesley, 2021. Used for quality attributes, tactics, and architectural reasoning.
+10. The project assignment workbook, `SE Design Project.xlsx`, supplied for the CS6451
+    design project. Its requirements are mapped to project evidence in the next section.
+
+---
+
+## 17. Assignment Deliverables and Traceability Matrix
+
+The following matrix converts the supplied assignment workbook into a report-ready
+submission checklist. “Evidence” links to the current repository artifact; “status” is
+the state of the evidence in this repository, not a claim that every optional extension
+has been implemented.
+
+| Assignment item | Required report output | Evidence in this repository | Status |
+|---|---|---|---|
+| 3.1 Business scenario | Maximum one-page narrative | Section 1; [`3.1 business scenario`](Document/3.1%20A%20one-page%20(maximum)%20narrative%20description%20of%20your%20business%20scenario.docx) | Complete |
+| 3.2 Software lifecycle | Maximum two-page lifecycle discussion and complexity/agility tension | [`3.2 lifecycle discussion`](Document/3.2%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20manageme.docx); Section 18 | Complete |
+| 3.3 Project plan | Scope, ownership, schedule, dependencies, and completion evidence | [`Project plan`](Plan/-v1.0-3-10-2026.xlsx); Section 19 | Evidence available; narrative summary added |
+| 4.1 Requirements | Use-case diagram and two detailed key use cases | [`Use-case diagram`](UML/all_user_case.svg); [`UC3 and UC6 descriptions`](UseCases/Use_Case_Description_UC3_UC6_v1.1.xlsx); Section 3 | Complete |
+| 4.2 Quality attributes | At least one “-ility” must be extensibility, plus quality tactics | Section 20; Sections 5 and 9 | Complete |
+| 4.3 GUI prototypes | Two GUI prototypes and explanation of user flow | [`GUI prototypes`](GUI/); Section 10 | Complete |
+| 5.0 Architecture | Maximum two-page architecture discussion, two architectural patterns, and a high-level package view | [`Architecture discussion`](Document/5.0%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20at%20least%20one%20high-level%20pac.docx); Sections 4 and 5; [`package diagram`](UML/package_diagram.svg) | Complete |
+| 6.1–6.5 Design sketches | Candidate objects, class, sequence/communication, state, and ER diagrams | [`Candidate objects`](Document/candidate_objects_1.0.xlsx); [`UML assets`](UML/); Section 13 | Complete |
+| 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | Section 21; source tree; GitHub history | Counts/LOC table must be refreshed before final submission |
+| 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | Sections 5, 8, and 12; `src/main/java`; `src/test/java` | Complete |
+| 8.5 Version control | Visual evidence of version-control use | Git repository: <https://github.com/fordringd2008/CS6451-Advanced-software-design> | Complete; add screenshot if required by marking rubric |
+| 9 Added value | Additional design or implementation value | Sections 5.4–5.10, 9, and 20 | Complete |
+| 10 Recovered architecture | Design-time package, component, and deployment blueprints | [`package diagram`](UML/package_diagram.svg), [`component diagram`](UML/component_diagram.svg), [`deployment diagram`](UML/deployment_diagram.svg) | Complete |
+| 11 Critique | Maximum one-page critique of design and implementation quality | Section 22 | Added |
+| 12 Reflection | A section entitled “Reflection” with a learning account for each team member | Section 23 | Fordring drafted; Franklin entry requires confirmation |
+| 13 AI list | List of prompts and generative-AI platforms used | Section 24 | Added; update with final prompt history |
+| 14 References | Academic, technical, and project references | Section 16 and Section 25 | Added |
+
+For final export, the report should retain sections 1–25 in order and include the linked
+SVG diagrams as figures or an appendix. The assignment page limits apply to the named
+subsections, not to the evidence appendix.
+
+---
+
+## 18. Software Lifecycle Discussion
+
+The project adopted a **plan-driven lifecycle with iterative refinement**. The initial
+requirements, use cases, candidate objects, GUI prototypes, architecture sketches, and
+implementation plan were established before the main coding work. This was appropriate
+for an assessed design project because it made the expected deliverables and interfaces
+visible early and created a stable basis for traceability.
+
+The process was not a rigid waterfall in practice. Requirements confirmation exposed
+ambiguity in the key use cases, particularly the guest redemption flow and manager
+operations. The team revisited the use cases, adjusted the design, and then implemented
+the clarified behavior. Tests and UML evidence were refined alongside the implementation.
+This hybrid approach retained the documentation and review benefits of a plan-driven
+process while allowing controlled iteration when requirements or implementation evidence
+changed.
+
+The central tension was between **complexity management** and **agility**. Too little
+structure would have produced duplicated business rules, unclear ownership, and weak
+traceability; too much up-front design would have made it expensive to respond to
+discoveries. The project addressed this by fixing the core domain vocabulary and
+architectural boundaries early, then isolating variation behind interfaces and patterns:
+payment strategies, order states, mappers, event listeners, and the message producer/
+consumer boundary. Small tests and explicit implementation-gap notes provide feedback
+without requiring a full redesign. This gives the team a controlled way to add payment
+types, listeners, or earning rules while keeping the main redemption flow stable.
+
+---
+
+## 19. Project Plan Summary
+
+The project plan divides work across requirements, architecture, GUI, coding, testing,
+documentation, and final review. The dependency order used by the project is:
+
+```text
+Business scenario and use cases
+        -> candidate objects and GUI prototypes
+        -> architecture and UML
+        -> implementation
+        -> automated tests and traceability
+        -> critique, reflection, AI list, and final references
+```
+
+The implementation evidence is organized around six use cases: UC1 login/account,
+UC2 points history, UC3 product redemption, UC4 points rules, UC5 manual point award,
+and UC6 product management. UC3 and UC6 are the two key use cases with detailed
+spreadsheet descriptions. The current schedule and named ownership remain in
+[`-v1.0-3-10-2026.xlsx`](Plan/-v1.0-3-10-2026.xlsx); this README supplies the narrative
+that connects the plan to the delivered artifacts.
+
+---
+
+## 20. Quality Attributes and Quality Tactics
+
+The project treats the following qualities as architectural concerns:
+
+| Quality attribute | Tactics and implementation evidence |
+|---|---|
+| Extensibility | Strategy interfaces for payment, state objects for order lifecycle, event listeners for reward distribution, mapper/service interfaces, and dependency injection |
+| Security | Session authentication, role-based URL rules, BCrypt, generic login errors, explicit account-status checks, and guest ownership validation |
+| Reliability | Transactional redemption, conditional balance/stock updates, persistent Artemis messaging, listener rollback/redelivery, and failure-visible implementation-gap documentation |
+| Modifiability | Layered separation of controllers, services, mappers, and views; focused DTOs/VOs; constructor injection; isolated payment and messaging abstractions |
+| Performance | Database-side conditional updates, filtered available-product queries, and asynchronous manual point adjustment |
+| Testability | Constructor injection, service boundaries, mapper abstractions, Spring test slices, security test support, and a test pyramid with fast unit tests around the business core |
+| Auditability | Signed points transactions, related order identifiers, timestamps, role checks, and explicit domain/application boundaries |
+
+The main trade-off is that the prototype favors local reproducibility over production
+scale: H2 and embedded Artemis reduce setup cost, while a production deployment would
+normally use a managed relational database, an external broker, CSRF protection, and
+external payment providers.
+
+---
+
+## 21. Transparency and Traceability
+
+The source package responsibilities, class-level implementation, and test evidence are
+described in Sections 4, 5, and 12. The traceability chain is:
+
+```text
+Assignment requirement
+    -> use case / quality attribute
+    -> UML or GUI artifact
+    -> controller/service/mapper implementation
+    -> automated test
+    -> known gap or completion status
+```
+
+The current package-to-responsibility table is in Section 4, the endpoint-to-use-case
+mapping is in Section 8, and the test-to-behavior summary is in Section 12. A final
+submission should append a generated package/class/LOC table from the exact final commit,
+because LOC and class counts change as implementation and tests evolve. Authorship should
+be taken from Git history rather than inferred from file names.
+
+---
+
+## 22. Critique of Design and Implementation
+
+The design is strong where the main business transaction crosses multiple concerns:
+authentication, payment validation, point deduction, stock deduction, order status, and
+audit history are separated into understandable boundaries. Strategy, State, Observer,
+Factory, Data Mapper, and message-driven processing are not merely named in the report;
+they correspond to identifiable code structures and diagrams. Conditional updates and
+transaction boundaries also address the most important correctness risk: concurrent
+redemptions.
+
+The main weaknesses are completeness and production hardening. Points rules can be
+maintained but are not yet connected to an external hotel-order earning flow. Manual
+adjustments have no user-facing lifecycle or dead-letter administration, and the reason
+is not persisted. Guest product availability is filtered by the backend but is not
+represented as a complete availability state in the view model. Order cancellation and
+fulfilment states are modelled but not wired into workflows. Finally, the prototype
+disables CSRF and simulates cash/voucher payment; both choices are acceptable for a
+local academic demonstration but require replacement before production use.
+
+Overall, the implementation is a credible and testable prototype with good separation
+of concerns. Its quality would improve most by closing the four documented gaps and by
+adding browser-level end-to-end tests for the complete guest and manager journeys.
+
+---
+
+## 23. Reflection
+
+### Fordring
+
+This project taught me how Chain of Responsibility, Observer, Strategy, and State
+patterns are used in a real application rather than only in isolated examples. I also
+studied Spring Boot MVC, layered architecture, security, persistence, and asynchronous
+processing in more depth. During requirements confirmation, discussion of the key use
+cases revealed ambiguity and caused part of the work to be restarted, which affected
+the schedule. The team recovered by prioritizing the clarified use cases, working
+through the implementation and test evidence, and bringing the schedule back on track.
+The main lesson is that early use-case agreement is not administrative overhead: it is
+a technical dependency for architecture, implementation, and testing.
+
+### Franklin
+
+This entry should be completed by Franklin before final export. It should describe:
+
+1. the technical concepts and patterns learned;
+2. the individual's contribution to requirements, GUI, coding, testing, or documentation;
+3. one difficulty and how it was resolved; and
+4. one practice that would be changed in a future project.
+
+---
+
+## 24. Generative AI Use
+
+Generative AI was used as an engineering assistant for repository inspection, explanation,
+documentation drafting, test-oriented reasoning, and consistency checking. It did not
+replace the team's responsibility for requirements decisions, code review, testing, or
+the accuracy of the final report.
+
+The final submission should include the actual prompt history used by each team member,
+with the platform and approximate purpose. The current project-level record includes:
+
+| Platform | Purpose to record in the final prompt log |
+|---|---|
+| GitHub Copilot / Copilot SDK in VS Code | Repository analysis, implementation assistance, documentation, and test review |
+| DeepSeek V4 Flash | Alternative explanations and review assistance, if used |
+| Qwen3-Coder 30B | Code-oriented reasoning, if used |
+| JoyAI Code 1.6 | Code-oriented assistance, if used |
+
+Prompts should be listed as a short appendix or table; secrets, credentials, and
+unnecessary private data must not be included.
+
+---
+
+## 25. References and Submission Checklist
+
+### Project references
+
+- [`Use_case_1.0.xlsx`](UseCases/Use_case_1.0.xlsx)
+- [`Use_Case_Description_UC3_UC6_v1.1.xlsx`](UseCases/Use_Case_Description_UC3_UC6_v1.1.xlsx)
+- [`candidate_objects_1.0.xlsx`](Document/candidate_objects_1.0.xlsx)
+- [`3.1 business scenario`](Document/3.1%20A%20one-page%20(maximum)%20narrative%20description%20of%20your%20business%20scenario.docx)
+- [`3.2 lifecycle discussion`](Document/3.2%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20manageme.docx)
+- [`5.0 architecture discussion`](Document/5.0%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20at%20least%20one%20high-level%20pac.docx)
+- [`Project plan`](Plan/-v1.0-3-10-2026.xlsx)
+- [`GitHub repository`](https://github.com/fordringd2008/CS6451-Advanced-software-design)
+
+### Final export checklist
+
+- [ ] Confirm the two page-limited discussions meet their page limits.
+- [ ] Insert the two detailed key-use-case descriptions and the required diagrams.
+- [ ] Refresh package/class/LOC/authorship tables from the final commit.
+- [ ] Add the required version-control screenshots, if the marking format requires images.
+- [ ] Replace the Franklin reflection placeholder with the team member's own account.
+- [ ] Append the final AI prompt list and verify that it contains no secrets.
+- [ ] Run `./mvnw clean test` and record the final test result and test count.
+- [ ] Review all “gap” labels so planned work is not presented as implemented behavior.
+- [ ] Export this README to PDF/HTML with SVG figures rendered and links preserved.
