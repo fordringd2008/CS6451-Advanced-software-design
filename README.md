@@ -942,12 +942,23 @@ a technical dependency for architecture, implementation, and testing.
 
 ### Franklin
 
-This entry should be completed by Franklin before final export. It should describe:
+What I learned
 
-1. the technical concepts and patterns learned;
-2. the individual's contribution to requirements, GUI, coding, testing, or documentation;
-3. one difficulty and how it was resolved; and
-4. one practice that would be changed in a future project.
+The most important thing I learned is the value of setting rules first. At the start, we wrote the architecture document, the coding standards (based on the Alibaba Java Development Manual), and the test strategy. When problems came up, we went back to these rules, found the cause, and improved the rules.
+
+For example, the first version of selectAll() did not filter out items with no stock. We missed this while coding. Before writing the tests, we checked the code against the UC3 sequence diagram and found it. So the rules helped us find a mistake that the code alone did not show.
+
+Project value
+
+We worked in a “rules first” way: documents and standards came before the code, and the test strategy came before the tests.
+
+What worked
+
+Setting rules first for the “how” part, such as UML and the test strategy, gave us a clear base for later work.
+
+What did not work
+
+We drew the GUI prototypes for the “what” part too late, after the design phase. As a result, the team understood some requirements differently, such as what the “threshold” in the points rule meant. The lesson is to draw prototypes before the design, so everyone agrees on what we are building before we decide how.
 
 ---
 
