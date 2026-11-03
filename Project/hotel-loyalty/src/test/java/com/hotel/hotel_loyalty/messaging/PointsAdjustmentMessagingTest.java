@@ -97,18 +97,20 @@ class PointsAdjustmentMessagingTest {
     }
 
     @Test
-    @DisplayName("PointsDeductedEvent published → listener does NOT deduct stock (by design)")
-    void testOnPointsDeducted_whenEventPublished_shouldNotDeductStock() {
-        // Design decision: stock deduction stays inside the redemption
-        // transaction (GuestPointsServiceImpl.redeem, explicit concurrency
-        // control via deductStock). The listener is notification-only —
-        // this test locks that decision so it is not changed by accident.
+    @DisplayName("PointsDeductedEvent published → listener deducts one unit of stock")
+    void testOnPointsDeducted_whenEventPublished_shouldDeductStock() {
+        // Design decision: stock deduction is the reward-distribution step
+        // performed by RewardDistributionListener (Event-Driven Architecture,
+        // document 5.0). Spring's @EventListener runs synchronously inside
+        // the publisher's transaction, so the deduction participates in the
+        // same transaction — atomicity is preserved while reward logic stays
+        // decoupled from the point-deduction service.
         // given: seed product P-003 has 200 in stock
         int stockBefore = productMapper.selectByPid("P-003").getRemainingStock();
         // when: a PointsDeductedEvent is published (in-process, synchronous)
         eventPublisher.publishEvent(new PointsDeductedEvent("O-1", "guest", "P-003", 800));
-        // then: stock is unchanged — the listener only logs, it does not deduct
+        // then: stock decreased by one — the listener distributed the reward
         ProductDO product = productMapper.selectByPid("P-003");
-        assertThat(product.getRemainingStock()).isEqualTo(stockBefore);
+        assertThat(product.getRemainingStock()).isEqualTo(stockBefore - 1);
     }
 }
