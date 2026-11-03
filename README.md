@@ -199,6 +199,39 @@ On creation, `remainingStock` is set to `totalStock`. The service validates that
 
 ![Product management sequence diagram](UML/manage_products.svg)
 
+### Required detailed use-case descriptions
+
+The following two key use cases are the detailed use cases selected for the report. They
+follow the lecture-note template and are consistent with the implementation status above.
+
+#### Key use case UC3 - Redeem points for a product
+
+| Field | Description |
+|---|---|
+| Primary actor | Guest |
+| Supporting actors/systems | Spring Security, payment strategy, H2 database, synchronous reward listener |
+| Goal | Exchange points, or points plus a simulated cash/voucher payment, for an available product |
+| Trigger | An authenticated guest submits the redemption form or REST request |
+| Preconditions | The guest is authenticated and owns the session; the product exists; the product is available; the request passes validation |
+| Main success scenario | 1. Load the guest, product, and payment method. 2. Validate the selected payment strategy. 3. Create a pending order. 4. Atomically deduct points. 5. Process the simulated non-points payment when applicable. 6. Transition the order to paid. 7. Insert the signed redemption transaction. 8. Publish `PointsDeductedEvent` and deduct one unit of stock. |
+| Alternative and exception flows | Insufficient points, invalid payment details, missing product, unavailable stock, failed optimistic update, or payment failure abort the transaction and do not leave a partial redemption. |
+| Postconditions | A successful redemption has a paid order, a negative points transaction linked to that order, and one fewer unit of remaining stock. A failed redemption leaves the protected balance, stock, and order data unchanged. |
+| Quality attributes | Extensibility through `PaymentStrategy`; reliability through transactions and conditional updates; security through ownership and role checks. |
+
+#### Key use case UC6 - Manage products
+
+| Field | Description |
+|---|---|
+| Primary actor | Manager |
+| Supporting actors/systems | Spring Security, `ProductManagementService`, `ProductMapper`, H2 database |
+| Goal | Create, inspect, update, and delete points-mall products while preserving stock and order constraints |
+| Trigger | An authenticated manager submits a product-management operation |
+| Preconditions | The manager is authenticated with `ROLE_MANAGER`; create/update data passes DTO validation; the target product exists for read/update/delete operations |
+| Main success scenario | 1. Manager opens the product-management page. 2. The controller validates the request. 3. The service checks point and stock invariants. 4. The mapper persists the create/update/delete operation. 5. The updated product list or result is returned. |
+| Alternative and exception flows | Invalid points or stock values are rejected; an unknown product returns an error; deletion is rejected when active orders reference the product. |
+| Postconditions | A successful create or update stores a product with valid point and stock values; a successful delete removes only a product with no active orders. |
+| Quality attributes | Security through manager-only routes; modifiability through controller/service/mapper separation; auditability through persisted product and order records. |
+
 ---
 
 ## 4. Functional Architecture
@@ -250,12 +283,40 @@ PointsAdjustmentConsumer
 - **MVC + REST:** controllers receive HTTP requests and return JSON or forward to JSP
   views; DTOs, VOs, and DOs carry model data; services hold business logic; the web
   layer does not access the database directly.
-- **Layered architecture:** the request path is Controller → Service → MyBatis Mapper
-  → H2. Domain objects are shared data objects, not an additional call-chain step.
+- **Layered architecture (independently researched):** the request path is Controller
+  → Service → MyBatis Mapper → H2. Domain objects are shared data objects, not an
+  additional call-chain step. This pattern was selected from independent architecture
+  research rather than from the lecture list of MVC, Broker, and Scheduler.
 - **Event-driven architecture:** points-adjustment requests are placed on a persistent
   Artemis queue and processed later by a consumer. The producer and consumer share only
   the queue contract, allowing retry on processing conflicts and keeping the caller
   independent from the work.
+
+### Technology deployment pipeline
+
+The system is intentionally **monolithic**: one Spring Boot application is built and
+packaged as one executable JAR. The runtime pipeline is:
+
+```text
+Browser
+  -> embedded Tomcat web/application server
+  -> Spring MVC JSP controllers and REST controllers
+  -> service layer
+  -> MyBatis Data Mapper
+  -> H2 relational EIS/database
+
+Manager adjustment request
+  -> Spring service
+  -> embedded Artemis JMS message bus
+  -> adjustment consumer
+  -> service layer and H2 database
+```
+
+Maven and GitHub Actions form the delivery pipeline: a push runs compilation and tests,
+and a tag packages the executable JAR and creates a GitHub Release. The current academic
+project stops at packaging because no deployment server is configured. A production
+version would replace the embedded server/database/broker with managed equivalents while
+retaining the same application boundaries.
 
 ### Main packages
 
@@ -447,6 +508,34 @@ Order 1 ---- * PointsTransaction
 PointsRule ..> User
 ```
 
+### Conceptual/initial design sketches
+
+The analysis-stage design evidence is kept separate from the implementation description:
+
+- **Candidate objects:** [`candidate_objects_1.0.xlsx`](Document/candidate_objects_1.0.xlsx)
+  identifies candidate actors, entities, boundary objects, control objects, and supporting
+  objects before implementation.
+- **Class sketch:** [`class_diagram_1.0.svg`](UML/class_diagram_1.0.svg) shows the principal
+  classes, interfaces, visibility, inheritance, aggregation/composition, associations, and
+  dependencies. The final implementation uses role-based `UserDO` rather than separate
+  `Guest` and `Manager` subclasses; this is documented as an implementation difference.
+- **Interaction sketches:** [`redeem_points_for_products.svg`](UML/redeem_points_for_products.svg)
+  and [`manage_products.svg`](UML/manage_products.svg) are the sequence diagrams for the
+  two detailed key use cases.
+- **State sketch:** [`order_state_diagram_1.0.svg`](UML/order_state_diagram_1.0.svg) gives
+  annotated order transitions and transition strings.
+- **Entity relationship sketch:** [`entry_relationship_diagram.svg`](UML/entry_relationship_diagram.svg)
+  shows the relational entities and cardinalities.
+
+The key interface contracts used by the sketches are:
+
+| Interface/operation | Precondition | Postcondition |
+|---|---|---|
+| `PaymentStrategy.validate(request)` | Payment type and request values are present | Returns a valid payment result or rejects the request without changing persistent state |
+| `ProductManagementService.create/update` | Manager authorization and valid point/stock invariants | A product is stored with `0 <= remainingStock <= totalStock` |
+| `GuestPointsService.redeem` | Authenticated owner, available product, and valid payment request | Success creates a paid order, signed transaction, and stock deduction atomically; failure preserves protected state |
+| `OrderState.pay(context)` | Order is in the pending-payment state and payment validation succeeded | Order transitions to paid, or the operation is rejected without a partial transition |
+
 ![Class diagram](UML/class_diagram_1.0.svg)
 
 ![Entry relationship diagram](UML/entry_relationship_diagram.svg)
@@ -576,6 +665,18 @@ All `/admin/**` and `/api/admin/**` routes require the manager role.
 ## 10. User Interface
 
 The UI is server-rendered using JSP and JSTL.
+
+The two required design-time GUI prototypes are:
+
+- [`guest_prototype_1.1.html`](GUI/guest_prototype_1.1.html), covering guest login,
+  account, points mall, and redemption flow.
+- [`admin_prototype_1.1.html`](GUI/admin_prototype_1.1.html), covering manager login,
+  product management, points rules, and manual point adjustment.
+
+The supporting prototype pages [`points_mall_prototype_1.1.html`](GUI/points_mall_prototype_1.1.html),
+[`my_points_prototype_1.1.html`](GUI/my_points_prototype_1.1.html), and
+[`confirm_payment_prototype_1.1.html`](GUI/confirm_payment_prototype_1.1.html) provide
+the detailed guest screens.
 
 | View | Purpose |
 |---|---|
@@ -912,6 +1013,31 @@ and UC6 product management. UC3 and UC6 are the two key use cases with detailed
 spreadsheet descriptions. The current schedule and named ownership remain in
 [`-v1.0-3-10-2026.xlsx`](Plan/-v1.0-3-10-2026.xlsx); this README supplies the narrative
 that connects the plan to the delivered artifacts.
+
+### Roles, responsibilities, deadlines, and deliverables
+
+The final plan assigns work by deliverable and uses Week 5–Week 8 milestones:
+
+| Team member | Role and contribution | Main deadlines | Deliverables |
+|---|---|---|---|
+| Fordring | Requirements lead, use-case analyst, UML/sketch contributor, implementation contributor, and final-report contributor | Week 5: scenario, use cases, quality attributes; Week 6: class/state/ER sketches; Week 7: coding and version-control evidence; Week 8: references and final review | Business scenario, use-case catalogue and key-use-case evidence, quality-attribute evidence, candidate objects, class/state/ER sketches, coding contribution, final references |
+| Franklin | Lifecycle and architecture lead, GUI contributor, transparency/testing/CI-CD contributor, implementation contributor, and critique contributor | Week 5: lifecycle, GUI, architecture; Week 7: package/class/LOC evidence, patterns, automated testing, CI/CD, critique, coding; Week 8: reflection | Lifecycle discussion, GUI prototypes, architecture and package evidence, transparency tables, pattern/testing/CI-CD evidence, critique, coding contribution, reflection |
+| Both | Joint implementation, integration, review, and final consistency checking | Weeks 7–8 | Working Spring Boot application, tests, final report, and submission review |
+
+The plan is iterative at the evidence level: requirements and sketches were reviewed
+before implementation, implementation findings were fed back into the UML and gap
+notes, and tests and the final critique were used to revise the report before export.
+
+### Industry experience
+
+The supplied project files do not contain verified employment or industry-experience
+details for either team member. The required table is included below so that the
+official information can be added without inventing credentials:
+
+| Team member | Industry domain(s) | Programming languages | Frameworks/tools | Evidence/status |
+|---|---|---|---|---|
+| Fordring | Not documented in the repository | Java, HTML/CSS/JavaScript are evidenced by this project | Spring Boot, Spring MVC, MyBatis, JUnit, Git/GitHub | Project experience evidenced; external industry experience requires confirmation |
+| Franklin | Not documented in the repository | Java, HTML/CSS/JavaScript are evidenced by this project | Spring Boot, Spring MVC, MyBatis, JUnit, GitHub Actions | Project experience evidenced; external industry experience requires confirmation |
 
 ### Final project plan
 
