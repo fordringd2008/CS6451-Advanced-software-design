@@ -134,7 +134,8 @@ The guest redemption flow is implemented by `GuestPointsServiceImpl`:
 5. Settle the non-points portion through `PaymentGateway` (simulated cash charge or voucher redemption).
 6. Mark the order as paid through the `OrderContext` state pattern with a compare-and-update status transition.
 7. Insert a negative points transaction linked to the order.
-8. Publish a `PointsDeductedEvent`; `RewardDistributionListener` runs synchronously inside the same transaction and deducts one unit of product stock as the reward-distribution step.
+8. Deduct one unit of product stock, publish a `PointsDeductedEvent`, and let
+   `RewardDistributionListener` record the reward-delivery notification in the application log.
 
 The My Redemptions tab reads the same paid order records through `OrderMapper.selectByUid`, so
 points-only, cash, and voucher redemptions all appear after successful completion.
@@ -222,6 +223,18 @@ PointsAdjustmentConsumer
 ```
 
 ![Layered architecture diagram](UML/layered_architecture.svg)
+
+### Architectural patterns
+
+- **MVC + REST:** controllers receive HTTP requests and return JSON or forward to JSP
+  views; DTOs, VOs, and DOs carry model data; services hold business logic; the web
+  layer does not access the database directly.
+- **Layered architecture:** the request path is Controller → Service → MyBatis Mapper
+  → H2. Domain objects are shared data objects, not an additional call-chain step.
+- **Event-driven architecture:** points-adjustment requests are placed on a persistent
+  Artemis queue and processed later by a consumer. The producer and consumer share only
+  the queue contract, allowing retry on processing conflicts and keeping the caller
+  independent from the work.
 
 ### Main packages
 
@@ -333,16 +346,13 @@ limits each handler to one business rule.
 
 ### 5.8 Observer / publish-subscribe event handling
 
-`RewardDistributionListener` and `PointsDeductedEvent` provide an active application-level
-Observer / publish-subscribe flow. When `GuestPointsServiceImpl.redeem` finishes deducting
-points, settling payment, and recording the order, it publishes a `PointsDeductedEvent`.
-`RewardDistributionListener` observes the event and deducts one unit of product stock as the
-reward-distribution step, keeping reward distribution separate from point deduction. Spring's
-synchronous `@EventListener` runs the listener inside the publisher's transaction, so the
-stock deduction joins the same redemption transaction — atomicity is preserved while
-the logic stays decoupled (Open/Closed Principle). More listeners, such as notification
-or voucher issuance, can subscribe to the same event without touching the redemption service
-or this listener.
+`RewardDistributionListener` and `PointsDeductedEvent` provide an application-level
+Observer / publish-subscribe extension point. The redemption flow deducts points, deducts
+stock, and creates the order; the listener currently records the reward-delivery event in
+the application log rather than performing a real external delivery or notification.
+This keeps a future reward-delivery implementation separate from the redemption flow.
+Additional listeners, such as notification or voucher issuance, can subscribe to the same
+event without changing the existing redemption code.
 
 ![Observer and event publication diagram](UML/observer_event.svg)
 
@@ -649,13 +659,29 @@ The current automated suite has 103 tests covering:
 5. Atomic balance, stock, order, and points-transaction changes.
 6. Voucher redemption transaction-history linkage.
 7. Manual-award queue processing and optimistic-lock retry behavior.
-8. Event-driven reward distribution: `PointsDeductedEvent` publication and listener stock deduction.
+8. Event-driven reward distribution: `PointsDeductedEvent` publication and listener notification behavior.
 9. Mapper, controller, service, state, and application-context behavior.
 
 The suite does not yet provide browser-level end-to-end coverage for every use case, real external
 payment-provider tests, points-rule calculation integration, or queue dead-letter operations.
 
 The full suite currently passes with `./mvnw clean test`.
+
+### Testing approach
+
+The project uses JUnit 5 and a testing-pyramid approach organized by distance from the
+business core. The intended approximate distribution is 70% unit tests, 20% integration
+tests, and 10% end-to-end or system-level tests. Unit tests are fast and cover most
+branches; the slower integration tests are reserved for critical paths such as the
+message flow, persistence, and Spring wiring. Browser-level end-to-end coverage remains
+an identified gap.
+
+### CI/CD
+
+CI/CD has been implemented with GitHub Actions. Pushes run the Maven verification/test
+pipeline, and tagged releases package the application JAR and create a GitHub Release.
+Because the project has no deployment server, continuous delivery currently ends at
+automated packaging; no server deployment is performed.
 
 ---
 
@@ -683,6 +709,20 @@ The repository contains these supporting artifacts:
 | MVC and dependency injection | [`mvc_dependency_injection.svg`](UML/mvc_dependency_injection.svg) |
 | Design principles evidence | [`design_principles.svg`](UML/design_principles.svg) |
 | Database schema | [`schema.sql`](Project/hotel-loyalty/src/main/resources/schema.sql) |
+
+The latest assignment documents used to update this report are:
+
+| Topic | Source document |
+|---|---|
+| Software lifecycle | [`3.2 lifecycle discussion`](Document/3.2%20A%20two-page%20%28maximum%29%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20managemen.docx) |
+| System architecture | [`5.0 architecture discussion`](Document/5.0%20A%20two-page%20%28maximum%29%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20%20high-level%20pack.docx) |
+| Package/class/LOC evidence | [`7.1`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx) |
+| MVC and architectural patterns | [`8.1`](Document/8.1%20Model-View-Controller%20%28MVC%29%20REST%20Architectural%20Pattern%2C%20and%20the%20Other%20Architectural%20Patterns%20Implemented.docx) |
+| Automated testing | [`8.4`](Document/8.4%20Automated%20testing%20using%20JunitNunitother.docx) |
+| CI/CD | [`9.1`](Document/9.1%20CICD.docx) |
+| Four design patterns | [`Four Design Patterns Implemented`](Document/Four%20Design%20Patterns%20Implemented.docx) |
+| Generative-AI prompt list | [`Prompt list`](Document/List%20of%20prompts%20used%20in%20Generative%20AI%20platform%28s%29.docx) |
+| Design and implementation critique | [`Critique`](Document/One%20page%20%28maximum%29%20critique%20on%20the%20quality%20of%20the%20design%20and%20implementation%20with%20a%20paragraph%20on%20the%20utility%20of%20diagrams%2C%20the%20eff.docx) |
 
 The original UML assets describe the conceptual design and should be read together with the current implementation notes in this report. In particular:
 
@@ -783,22 +823,22 @@ has been implemented.
 
 | Assignment item | Required report output | Evidence in this repository | Status |
 |---|---|---|---|
-| 3.1 Business scenario | Maximum one-page narrative | Section 1; [`3.1 business scenario`](Document/3.1%20A%20one-page%20(maximum)%20narrative%20description%20of%20your%20business%20scenario.docx) | Complete |
-| 3.2 Software lifecycle | Maximum two-page lifecycle discussion and complexity/agility tension | [`3.2 lifecycle discussion`](Document/3.2%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20manageme.docx); Section 18 | Complete |
+| 3.1 Business scenario | Maximum one-page narrative | Section 1; [`3.1 business scenario`](Document/3.1%20A%20one-page%20%28maximum%29%20narrative%20description%20of%20your%20business%20scenario.docx) | Complete |
+| 3.2 Software lifecycle | Maximum two-page lifecycle discussion and complexity/agility tension | [`3.2 lifecycle discussion`](Document/3.2%20A%20two-page%20%28maximum%29%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20managemen.docx); Section 18 | Complete |
 | 3.3 Project plan | Scope, ownership, schedule, dependencies, and completion evidence | [`Project plan`](Plan/-v1.0-3-10-2026.xlsx); Section 19 | Evidence available; narrative summary added |
 | 4.1 Requirements | Use-case diagram and two detailed key use cases | [`Use-case diagram`](UML/all_user_case.svg); [`UC3 and UC6 descriptions`](UseCases/Use_Case_Description_UC3_UC6_v1.1.xlsx); Section 3 | Complete |
 | 4.2 Quality attributes | At least one “-ility” must be extensibility, plus quality tactics | Section 20; Sections 5 and 9 | Complete |
 | 4.3 GUI prototypes | Two GUI prototypes and explanation of user flow | [`GUI prototypes`](GUI/); Section 10 | Complete |
-| 5.0 Architecture | Maximum two-page architecture discussion, two architectural patterns, and a high-level package view | [`Architecture discussion`](Document/5.0%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20at%20least%20one%20high-level%20pac.docx); Sections 4 and 5; [`package diagram`](UML/package_diagram.svg) | Complete |
+| 5.0 Architecture | Maximum two-page architecture discussion, two architectural patterns, and a high-level package view | [`Architecture discussion`](Document/5.0%20A%20two-page%20%28maximum%29%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20%20high-level%20pack.docx); Sections 4 and 5; [`package diagram`](UML/package_diagram.svg) | Complete |
 | 6.1–6.5 Design sketches | Candidate objects, class, sequence/communication, state, and ER diagrams | [`Candidate objects`](Document/candidate_objects_1.0.xlsx); [`UML assets`](UML/); Section 13 | Complete |
-| 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | Section 21; source tree; GitHub history | Counts/LOC table must be refreshed before final submission |
-| 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | Sections 5, 8, and 12; `src/main/java`; `src/test/java` | Complete |
+| 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | [`7.1 package counts`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2 class authorship and LOC`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3 team LOC`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx); Section 21 | Complete for the archived commit |
+| 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | [`8.1 MVC and architectural patterns`](Document/8.1%20Model-View-Controller%20%28MVC%29%20REST%20Architectural%20Pattern%2C%20and%20the%20Other%20Architectural%20Patterns%20Implemented.docx), [`four design patterns`](Document/Four%20Design%20Patterns%20Implemented.docx), [`8.4 automated testing`](Document/8.4%20Automated%20testing%20using%20JunitNunitother.docx), Sections 5, 8, and 12; `src/main/java`; `src/test/java` | Complete |
 | 8.5 Version control | Visual evidence of version-control use | Git repository: <https://github.com/fordringd2008/CS6451-Advanced-software-design> | Complete; add screenshot if required by marking rubric |
-| 9 Added value | Additional design or implementation value | Sections 5.4–5.10, 9, and 20 | Complete |
+| 9 Added value | Additional design or implementation value | Sections 5.4–5.10, 9, and 20; [`9.1 CI/CD`](Document/9.1%20CICD.docx) | Complete |
 | 10 Recovered architecture | Design-time package, component, and deployment blueprints | [`package diagram`](UML/package_diagram.svg), [`component diagram`](UML/component_diagram.svg), [`deployment diagram`](UML/deployment_diagram.svg) | Complete |
-| 11 Critique | Maximum one-page critique of design and implementation quality | Section 22 | Added |
+| 11 Critique | Maximum one-page critique of design and implementation quality | [`Critique`](Document/One%20page%20%28maximum%29%20critique%20on%20the%20quality%20of%20the%20design%20and%20implementation%20with%20a%20paragraph%20on%20the%20utility%20of%20diagrams%2C%20the%20eff.docx); Section 22 | Added |
 | 12 Reflection | A section entitled “Reflection” with a learning account for each team member | Section 23 | Fordring drafted; Franklin entry requires confirmation |
-| 13 AI list | List of prompts and generative-AI platforms used | Section 24 | Added; update with final prompt history |
+| 13 AI list | List of prompts and generative-AI platforms used | [`Prompt list`](Document/List%20of%20prompts%20used%20in%20Generative%20AI%20platform%28s%29.docx); Section 24 | Complete for the archived prompt list |
 | 14 References | Academic and technical references | Section 16 and Section 25 | Added |
 
 For final export, the report should retain sections 1–25 in order and include the linked
@@ -809,29 +849,24 @@ subsections, not to the evidence appendix.
 
 ## 18. Software Lifecycle Discussion
 
-The project adopted a **plan-driven lifecycle with iterative refinement**. The initial
-requirements, use cases, candidate objects, GUI prototypes, architecture sketches, and
-implementation plan were established before the main coding work. This was appropriate
-for an assessed design project because it made the expected deliverables and interfaces
-visible early and created a stable basis for traceability.
+The project adopted a **Waterfall lifecycle**. Requirements were confirmed and frozen at
+the start, and the chance of later changes was considered low. Feedback was collected at
+fixed review points: requirements were reviewed in Week 5, design was completed during
+Weeks 5–6, and coding began from Week 7. A two-person team could communicate directly, so
+formal Agile ceremonies such as daily stand-ups would have added cost without enough
+benefit.
 
-The process was not a rigid waterfall in practice. Requirements confirmation exposed
-ambiguity in the key use cases, particularly the guest redemption flow and manager
-operations. The team revisited the use cases, adjusted the design, and then implemented
-the clarified behavior. Tests and UML evidence were refined alongside the implementation.
-This hybrid approach retained the documentation and review benefits of a plan-driven
-process while allowing controlled iteration when requirements or implementation evidence
-changed.
+The team considered RUP but did not adopt it. RUP repeats analysis and design through
+multiple iterations and is better suited to large or high-risk systems requiring formal
+tracking and audits. This project has stable requirements, two team members, and no
+external audit requirement, so RUP's additional process would add effort without
+proportionate value.
 
-The central tension was between **complexity management** and **agility**. Too little
-structure would have produced duplicated business rules, unclear ownership, and weak
-traceability; too much up-front design would have made it expensive to respond to
-discoveries. The project addressed this by fixing the core domain vocabulary and
-architectural boundaries early, then isolating variation behind interfaces and patterns:
-payment strategies, order states, mappers, event listeners, and the message producer/
-consumer boundary. Small tests and explicit implementation-gap notes provide feedback
-without requiring a full redesign. This gives the team a controlled way to add payment
-types, listeners, or earning rules while keeping the main redemption flow stable.
+The main tension was between **management of complexity and agility**. For this small,
+simple project, heavy documentation and strict process would slow delivery while adding
+little practical value. The team resolved the tension with a lightweight Waterfall
+approach: work in a clear sequence, keep only the communication and records needed for
+the assignment, and avoid process overhead that does not address a real project risk.
 
 ---
 
@@ -866,7 +901,7 @@ The project treats the following qualities as architectural concerns:
 |---|---|
 | Extensibility | Strategy interfaces for payment, state objects for order lifecycle, event listeners for reward distribution, mapper/service interfaces, and dependency injection |
 | Security | Session authentication, role-based URL rules, BCrypt, generic login errors, explicit account-status checks, and guest ownership validation |
-| Reliability | Transactional redemption, conditional balance/stock updates, persistent Artemis messaging, listener rollback/redelivery, and failure-visible implementation-gap documentation |
+| Reliability | Transactional redemption, conditional balance/stock updates, persistent Artemis messaging, retry on message-processing conflicts, and failure-visible implementation-gap documentation |
 | Modifiability | Layered separation of controllers, services, mappers, and views; focused DTOs/VOs; constructor injection; isolated payment and messaging abstractions |
 | Performance | Database-side conditional updates, filtered available-product queries, and asynchronous manual point adjustment |
 | Testability | Constructor injection, service boundaries, mapper abstractions, Spring test slices, security test support, and a test pyramid with fast unit tests around the business core |
@@ -881,8 +916,7 @@ external payment providers.
 
 ## 21. Transparency and Traceability
 
-The source package responsibilities, class-level implementation, and test evidence are
-described in Sections 4, 5, and 12. The traceability chain is:
+The traceability chain is:
 
 ```text
 Assignment requirement
@@ -893,36 +927,166 @@ Assignment requirement
     -> known gap or completion status
 ```
 
-The current package-to-responsibility table is in Section 4, the endpoint-to-use-case
-mapping is in Section 8, and the test-to-behavior summary is in Section 12. A final
-submission should append a generated package/class/LOC table from the exact final commit,
-because LOC and class counts change as implementation and tests evolve. Authorship should
-be taken from Git history rather than inferred from file names.
+The following archived statistics come from the supplied 7.1–7.3 workbooks and describe
+the commit that added those workbooks. They are retained as submission evidence rather
+than regenerated from the current working tree.
+
+### 7.1 Package and class counts
+
+| Package | Description | Classes |
+|---|---|---:|
+| `com.hotel.hotel_loyalty` | Spring Boot entry point | 1 |
+| `.common` | Shared utilities and exception handling | 3 |
+| `.config` | Security and JMS configuration | 2 |
+| `.controller` | REST and JSP controllers | 10 |
+| `.domain` | Database table data objects | 6 |
+| `.dto` | Inbound request payloads | 6 |
+| `.enums` | Type-safe enumerations | 6 |
+| `.mapper` | MyBatis data access mappers | 6 |
+| `.messaging` | Events and JMS messages | 5 |
+| `.order` | Order state machine | 6 |
+| `.payment` | Payment strategy pattern | 8 |
+| `.security` | Login and authorization handlers | 11 |
+| `.service` | Business service interfaces | 4 |
+| `.service.impl` | Business service implementations | 4 |
+| `.vo` | Outbound response view objects | 11 |
+| **Total** | **15 packages** | **89** |
+
+### 7.2 Class authorship and lines of code
+
+| Package | Class | Author | LOC |
+|---|---|---|---:|
+| `com.hotel.hotel_loyalty` | `HotelLoyaltyApplication` | wukewei | 23 |
+| `common` | `DateTimeDisplayFormatter` | Fordring | 23 |
+| `common` | `GlobalExceptionHandler` | wukewei | 78 |
+| `common` | `Result` | wukewei | 41 |
+| `config` | `JmsConfig` | wukewei | 51 |
+| `config` | `SecurityConfig` | wukewei | 112 |
+| `controller` | `AdminPointsController` | wukewei | 30 |
+| `controller` | `AdminPointsRuleController` | wukewei | 31 |
+| `controller` | `AdminProductController` | wukewei | 40 |
+| `controller` | `AuthJspController` | wukewei | 34 |
+| `controller` | `DemoJspController` | wukewei | 36 |
+| `controller` | `GuestJspController` | Fordring | 155 |
+| `controller` | `GuestPointsController` | Fordring | 103 |
+| `controller` | `PointsAdjustmentController` | wukewei | 53 |
+| `controller` | `PointsRuleController` | wukewei | 70 |
+| `controller` | `ProductManagementController` | wukewei | 83 |
+| `domain` | `OrderDO` | wukewei | 60 |
+| `domain` | `PaymentMethodDO` | wukewei | 42 |
+| `domain` | `PointsRuleDO` | wukewei | 60 |
+| `domain` | `PointsTransactionDO` | wukewei | 51 |
+| `domain` | `ProductDO` | wukewei | 48 |
+| `domain` | `UserDO` | wukewei | 53 |
+| `dto` | `PointsAdjustDTO` | wukewei | 30 |
+| `dto` | `PointsAdjustmentDTO` | wukewei | 28 |
+| `dto` | `PointsRuleDTO` | wukewei | 48 |
+| `dto` | `ProductCreateDTO` | wukewei | 41 |
+| `dto` | `ProductUpdateDTO` | wukewei | 54 |
+| `dto` | `RedemptionRequest` | Fordring | 44 |
+| `enums` | `OrderStatusEnum` | wukewei | 59 |
+| `enums` | `PaymentTypeEnum` | wukewei | 98 |
+| `enums` | `PointsRuleTypeEnum` | wukewei | 57 |
+| `enums` | `UserLevelEnum` | wukewei | 60 |
+| `enums` | `UserRoleEnum` | wukewei | 51 |
+| `enums` | `UserStatusEnum` | wukewei | 54 |
+| `mapper` | `OrderMapper` | wukewei | 52 |
+| `mapper` | `PaymentMethodMapper` | wukewei | 27 |
+| `mapper` | `PointsRuleMapper` | wukewei | 46 |
+| `mapper` | `PointsTransactionMapper` | wukewei | 34 |
+| `mapper` | `ProductMapper` | wukewei | 60 |
+| `mapper` | `UserMapper` | wukewei | 54 |
+| `messaging` | `PointsAdjustmentConsumer` | wukewei | 76 |
+| `messaging` | `PointsAdjustmentMessage` | wukewei | 43 |
+| `messaging` | `PointsAdjustmentProducer` | wukewei | 38 |
+| `messaging` | `PointsDeductedEvent` | wukewei | 43 |
+| `messaging` | `RewardDistributionListener` | wukewei | 36 |
+| `order` | `CancelledState` | wukewei | 37 |
+| `order` | `CompletedState` | wukewei | 37 |
+| `order` | `OrderContext` | wukewei | 76 |
+| `order` | `OrderState` | wukewei | 32 |
+| `order` | `PaidState` | wukewei | 39 |
+| `order` | `PendingPaymentState` | wukewei | 37 |
+| `payment` | `PaymentAmountCalculator` | Fordring | 24 |
+| `payment` | `PaymentRequest` | wukewei | 39 |
+| `payment` | `PaymentResult` | wukewei | 31 |
+| `payment` | `PaymentStrategy` | wukewei | 22 |
+| `payment` | `PaymentStrategyFactory` | wukewei | 49 |
+| `payment` | `PointsOnlyStrategy` | wukewei | 37 |
+| `payment` | `PointsPlusCashStrategy` | wukewei | 48 |
+| `payment` | `PointsPlusVoucherStrategy` | wukewei | 49 |
+| `security` | `AppUserDetailsService` | wukewei | 92 |
+| `security` | `LoginContext` | wukewei | 36 |
+| `security` | `LoginFailureHandler` | wukewei | 39 |
+| `security` | `LoginLogHandler` | wukewei | 26 |
+| `security` | `LoginPostHandler` | wukewei | 55 |
+| `security` | `LoginSuccessHandler` | wukewei | 70 |
+| `security` | `PortalAwareAuthenticationEntryPoint` | wukewei | 37 |
+| `security` | `PortalAwareLogoutSuccessHandler` | wukewei | 36 |
+| `security` | `PortalMatchHandler` | wukewei | 27 |
+| `security` | `RedirectHandler` | wukewei | 23 |
+| `security` | `StatusCheckHandler` | wukewei | 23 |
+| `service` | `GuestPointsService` | Fordring | 60 |
+| `service` | `PointsAdjustmentService` | wukewei | 38 |
+| `service` | `PointsRuleService` | wukewei | 39 |
+| `service` | `ProductManagementService` | wukewei | 47 |
+| `service.impl` | `GuestPointsServiceImpl` | Fordring | 329 |
+| `service.impl` | `PointsAdjustmentServiceImpl` | wukewei | 86 |
+| `service.impl` | `PointsRuleServiceImpl` | wukewei | 133 |
+| `service.impl` | `ProductManagementServiceImpl` | wukewei | 162 |
+| `vo` | `AccountVO` | wukewei | 47 |
+| `vo` | `ConfirmPaymentVO` | wukewei | 36 |
+| `vo` | `MyPointsVO` | wukewei | 39 |
+| `vo` | `PaymentMethodVO` | wukewei | 19 |
+| `vo` | `PointsHistoryVO` | wukewei | 36 |
+| `vo` | `PointsMallVO` | wukewei | 21 |
+| `vo` | `ProductAdminVO` | wukewei | 36 |
+| `vo` | `ProductVO` | wukewei | 25 |
+| `vo` | `RedemptionRecordVO` | wukewei | 49 |
+| `vo` | `RuleAdminVO` | wukewei | 43 |
+| `vo` | `UserPointsVO` | wukewei | 29 |
+
+### 7.3 Team contribution
+
+| Team member | Classes | LOC | Share |
+|---|---:|---:|---:|
+| wukewei | 82 | 3,966 | 84.4369% |
+| Fordring | 7 | 731 | 15.5631% |
+| **Total** | **89** | **4,697** | **100%** |
+
+The endpoint-to-use-case mapping remains in Section 8, and the test-to-behavior summary
+is in Section 12. These archived counts should not be presented as a fresh count if the
+source tree changes after the documented commit.
 
 ---
 
 ## 22. Critique of Design and Implementation
 
-The design is strong where the main business transaction crosses multiple concerns:
-authentication, payment validation, point deduction, stock deduction, order status, and
-audit history are separated into understandable boundaries. Strategy, State, Observer,
-Factory, Data Mapper, and message-driven processing are not merely named in the report;
-they correspond to identifiable code structures and diagrams. Conditional updates and
-transaction boundaries also address the most important correctness risk: concurrent
-redemptions.
+The design is mostly solid, but several features remain unfinished. Controllers do not
+access mappers directly, services do not call each other, and the layered MVC structure
+keeps responsibilities clear. The payment strategies and login validation chain are
+small and independently testable. Optimistic locking prevents concurrent balance or
+stock updates from overwriting one another. Unit tests cover the strategies and chain,
+while integration tests exercise the message flow with Artemis and H2; CI runs the
+automated tests on every push.
 
-The main weaknesses are completeness and production hardening. Points rules can be
-maintained but are not yet connected to an external hotel-order earning flow. Manual
-adjustments have no user-facing lifecycle or dead-letter administration, and the reason
-is not persisted. Guest product availability is filtered by the backend but is not
-represented as a complete availability state in the view model. Order cancellation and
-fulfilment states are modelled but not wired into workflows. Finally, the prototype
-disables CSRF and simulates cash/voucher payment; both choices are acceptable for a
-local academic demonstration but require replacement before production use.
+The main weaknesses are in the incomplete event-driven and operational features. There
+is no dead-letter queue, so messages that exhaust all retries are not administratively
+recoverable. Reward delivery currently writes a log rather than performing a real
+delivery or sending a notification. The queue architecture is prepared for batch
+issuing, but no batch-issuing endpoint exists and the 10,000-user scenario has not been
+tested. These limits are acceptable for an academic prototype but must be addressed for
+production use.
 
-Overall, the implementation is a credible and testable prototype with good separation
-of concerns. Its quality would improve most by closing the four documented gaps and by
-adding browser-level end-to-end tests for the complete guest and manager journeys.
+### Utility of diagrams
+
+The UML diagrams are useful implementation guides: the class, layered-package, and
+pattern diagrams closely match the package structure, and the use-case diagrams helped
+derive controller endpoints and test scenarios. Their limitation is that they are
+static and cannot be automatically checked against source code. For example, the
+order-state diagram describes a `refundPoints()` operation that is not present in the
+implementation. The diagrams should therefore document the main flows, omit details
+that change frequently, and be reviewed whenever the code changes.
 
 ---
 
@@ -964,23 +1128,19 @@ We drew the GUI prototypes for the “what” part too late, after the design ph
 
 ## 24. Generative AI Use
 
-Generative AI was used as an engineering assistant for repository inspection, explanation,
-documentation drafting, test-oriented reasoning, and consistency checking. It did not
-replace the team's responsibility for requirements decisions, code review, testing, or
-the accuracy of the final report.
+The team used Copilot, DeepSeek V4 Flash, Qwen3-Coder 30B, and JoyAI Code 1.6 as
+engineering assistants. Human team members retained responsibility for requirements,
+verification, source-code decisions, and the final report.
 
-The final submission should include the actual prompt history used by each team member,
-with the platform and approximate purpose. The current project-level record includes:
+| # | Task | Representative prompt | AI output | Human action |
+|---:|---|---|---|---|
+| 1 | CI/CD setup | “This GitHub assignment project has no server. How can we add CI/CD?” | `ci.yml` for push-to-Maven verification and `release.yml` for tag-to-JAR/GitHub Release | Chose branch and trigger rules; fixed a token-scope failure and a test failure; changed the test assertion |
+| 2 | UML audit | “Check which UML diagrams are valid and match the code.” | Audited 15 diagrams; 9 matched and 6 had discrepancies such as incorrect class names, outdated claims, or incorrect SQL | Verified each finding against source code before accepting it |
+| 3 | Test code | “Fix the failing PointsAdjustmentMessagingTest.” | Revised the test to assert that stock remains unchanged in the notification-only design | Confirmed the design intent and changed the test rather than the implementation |
+| 4 | Concept explanations | “What does git tag mean?” and “How does GitHub Actions CI work?” | Explained Git tags and GitHub Actions CI | Used the explanations to improve understanding, then executed commands manually |
 
-| Platform | Purpose to record in the final prompt log |
-|---|---|
-| GitHub Copilot / Copilot SDK in VS Code | Repository analysis, implementation assistance, documentation, and test review |
-| DeepSeek V4 Flash | Alternative explanations and review assistance, if used |
-| Qwen3-Coder 30B | Code-oriented reasoning, if used |
-| JoyAI Code 1.6 | Code-oriented assistance, if used |
-
-Prompts should be listed as a short appendix or table; secrets, credentials, and
-unnecessary private data must not be included.
+Secrets, credentials, and unnecessary private data must not be included in the prompt
+history.
 
 ---
 
