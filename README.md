@@ -134,8 +134,8 @@ The guest redemption flow is implemented by `GuestPointsServiceImpl`:
 5. Settle the non-points portion through `PaymentGateway` (simulated cash charge or voucher redemption).
 6. Mark the order as paid through the `OrderContext` state pattern with a compare-and-update status transition.
 7. Insert a negative points transaction linked to the order.
-8. Deduct one unit of product stock, publish a `PointsDeductedEvent`, and let
-   `RewardDistributionListener` record the reward-delivery notification in the application log.
+8. Publish a `PointsDeductedEvent`; `RewardDistributionListener` runs synchronously within
+   the same transaction and deducts one unit of product stock as the reward-distribution step.
 
 The My Redemptions tab reads the same paid order records through `OrderMapper.selectByUid`, so
 points-only, cash, and voucher redemptions all appear after successful completion.
@@ -347,10 +347,11 @@ limits each handler to one business rule.
 ### 5.8 Observer / publish-subscribe event handling
 
 `RewardDistributionListener` and `PointsDeductedEvent` provide an application-level
-Observer / publish-subscribe extension point. The redemption flow deducts points, deducts
-stock, and creates the order; the listener currently records the reward-delivery event in
-the application log rather than performing a real external delivery or notification.
-This keeps a future reward-delivery implementation separate from the redemption flow.
+Observer / publish-subscribe extension point. The redemption flow deducts points, settles
+payment, and creates the order; the listener then deducts one unit of product stock as the
+reward-distribution step. Spring's `@EventListener` runs synchronously inside the publisher's
+transaction, so the stock deduction participates in the same redemption transaction and
+atomicity is preserved while reward logic stays decoupled from the point-deduction service.
 Additional listeners, such as notification or voucher issuance, can subscribe to the same
 event without changing the existing redemption code.
 
@@ -659,7 +660,7 @@ The current automated suite has 103 tests covering:
 5. Atomic balance, stock, order, and points-transaction changes.
 6. Voucher redemption transaction-history linkage.
 7. Manual-award queue processing and optimistic-lock retry behavior.
-8. Event-driven reward distribution: `PointsDeductedEvent` publication and listener notification behavior.
+8. Event-driven reward distribution: `PointsDeductedEvent` publication and listener stock-deduction behavior.
 9. Mapper, controller, service, state, and application-context behavior.
 
 The suite does not yet provide browser-level end-to-end coverage for every use case, real external
@@ -1072,8 +1073,9 @@ automated tests on every push.
 
 The main weaknesses are in the incomplete event-driven and operational features. There
 is no dead-letter queue, so messages that exhaust all retries are not administratively
-recoverable. Reward delivery currently writes a log rather than performing a real
-delivery or sending a notification. The queue architecture is prepared for batch
+recoverable. The reward-distribution listener deducts stock inside the redemption
+transaction, but no real external delivery (e-mail confirmation, shipment, or voucher
+issuance) or guest notification is implemented yet. The queue architecture is prepared for batch
 issuing, but no batch-issuing endpoint exists and the 10,000-user scenario has not been
 tested. These limits are acceptable for an academic prototype but must be addressed for
 production use.
@@ -1136,7 +1138,7 @@ verification, source-code decisions, and the final report.
 |---:|---|---|---|---|
 | 1 | CI/CD setup | “This GitHub assignment project has no server. How can we add CI/CD?” | `ci.yml` for push-to-Maven verification and `release.yml` for tag-to-JAR/GitHub Release | Chose branch and trigger rules; fixed a token-scope failure and a test failure; changed the test assertion |
 | 2 | UML audit | “Check which UML diagrams are valid and match the code.” | Audited 15 diagrams; 9 matched and 6 had discrepancies such as incorrect class names, outdated claims, or incorrect SQL | Verified each finding against source code before accepting it |
-| 3 | Test code | “Fix the failing PointsAdjustmentMessagingTest.” | Revised the test to assert that stock remains unchanged in the notification-only design | Confirmed the design intent and changed the test rather than the implementation |
+| 3 | Test code | “Fix the failing PointsAdjustmentMessagingTest.” | Revised the test to assert that stock decreases by one, matching the listener-deducts-stock event-driven design | Confirmed the design intent and changed the test rather than the implementation |
 | 4 | Concept explanations | “What does git tag mean?” and “How does GitHub Actions CI work?” | Explained Git tags and GitHub Actions CI | Used the explanations to improve understanding, then executed commands manually |
 
 Secrets, credentials, and unnecessary private data must not be included in the prompt
