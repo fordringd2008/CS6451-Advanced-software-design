@@ -29,6 +29,27 @@ The main business rules are:
 - A product with active orders cannot be deleted.
 - Every redemption and manual award creates a signed points transaction.
 
+### Actual running screenshots
+
+The following screenshots show the implemented application running, rather than only
+the design-time HTML prototypes:
+
+#### Points Mall
+
+![Actual Points Mall page](GUI/Real-Points%20Mall.png)
+
+#### My Points
+
+![Actual My Points page](GUI/Real-My%20Points.png)
+
+#### Add Product
+
+![Actual Add Product page](GUI/Real-Add%20Product.png)
+
+#### Points Adjustment
+
+![Actual Points Adjustment page](GUI/Real-Points%20Adjustment.png)
+
 ---
 
 ## 2. Executive Summary
@@ -826,10 +847,10 @@ has been implemented.
 |---|---|---|---|
 | 3.1 Business scenario | Maximum one-page narrative | Section 1; [`3.1 business scenario`](Document/3.1%20A%20one-page%20%28maximum%29%20narrative%20description%20of%20your%20business%20scenario.docx) | Complete |
 | 3.2 Software lifecycle | Maximum two-page lifecycle discussion and complexity/agility tension | [`3.2 lifecycle discussion`](Document/3.2%20A%20two-page%20%28maximum%29%20discussion%20on%20the%20software%20lifecycle%20adopted%20with%20a%20paragraph%20on%20resolution%20of%20tension%20between%20managemen.docx); Section 18 | Complete |
-| 3.3 Project plan | Scope, ownership, schedule, dependencies, and completion evidence | [`Project plan`](Plan/-v1.0-3-10-2026.xlsx); Section 19 | Evidence available; narrative summary added |
+| 3.3 Project plan | Scope, ownership, schedule, dependencies, and completion evidence | [`Project plan`](Plan/-v1.0-3-10-2026.xlsx), [`final plan screenshot`](Plan/Final%20Plan.png); Section 19 | Complete |
 | 4.1 Requirements | Use-case diagram and two detailed key use cases | [`Use-case diagram`](UML/all_user_case.svg); [`UC3 and UC6 descriptions`](UseCases/Use_Case_Description_UC3_UC6_v1.1.xlsx); Section 3 | Complete |
 | 4.2 Quality attributes | At least one “-ility” must be extensibility, plus quality tactics | Section 20; Sections 5 and 9 | Complete |
-| 4.3 GUI prototypes | Two GUI prototypes and explanation of user flow | [`GUI prototypes`](GUI/); Section 10 | Complete |
+| 4.3 GUI prototypes | Two GUI prototypes and explanation of user flow | [`GUI prototypes`](GUI/); actual running screenshots in Section 10 | Complete |
 | 5.0 Architecture | Maximum two-page architecture discussion, two architectural patterns, and a high-level package view | [`Architecture discussion`](Document/5.0%20A%20two-page%20%28maximum%29%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20%20high-level%20pack.docx); Sections 4 and 5; [`package diagram`](UML/package_diagram.svg) | Complete |
 | 6.1–6.5 Design sketches | Candidate objects, class, sequence/communication, state, and ER diagrams | [`Candidate objects`](Document/candidate_objects_1.0.xlsx); [`UML assets`](UML/); Section 13 | Complete |
 | 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | [`7.1 package counts`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2 class authorship and LOC`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3 team LOC`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx); Section 21 | Complete for the archived commit |
@@ -891,6 +912,12 @@ and UC6 product management. UC3 and UC6 are the two key use cases with detailed
 spreadsheet descriptions. The current schedule and named ownership remain in
 [`-v1.0-3-10-2026.xlsx`](Plan/-v1.0-3-10-2026.xlsx); this README supplies the narrative
 that connects the plan to the delivered artifacts.
+
+### Final project plan
+
+![Final project plan](Plan/Final%20Plan.png)
+
+This image is the final project-plan snapshot and complements the underlying workbook.
 
 ---
 
