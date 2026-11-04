@@ -1325,7 +1325,7 @@ has been implemented.
 | 6.1–6.5 Design sketches | Candidate objects, class, sequence/communication, state, and ER diagrams | [`Candidate objects`](Document/candidate_objects_1.0.xlsx); [`UML assets`](UML/); Section 13 | Complete |
 | 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | [`7.1 package counts`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2 class authorship and LOC`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3 team LOC`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx); Section 21 (includes 7.4 planned-versus-actual table) | Complete |
 | 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | [`8.1 MVC and architectural patterns`](Document/8.1%20Model-View-Controller%20%28MVC%29%20REST%20Architectural%20Pattern%2C%20and%20the%20Other%20Architectural%20Patterns%20Implemented.docx), [`four design patterns`](Document/Four%20Design%20Patterns%20Implemented.docx), [`8.4 automated testing`](Document/8.4%20Automated%20testing%20using%20JunitNunitother.docx), Sections 4 and 5 (code snippets included), Sections 8 and 12; `src/main/java`; `src/test/java` | Complete |
-| 8.5 Version control | Visual evidence of version-control use | Git repository: <https://github.com/fordringd2008/CS6451-Advanced-software-design> | Complete; add screenshot if required by marking rubric |
+| 8.5 Version control | Visual evidence of version-control use | Git repository: <https://github.com/fordringd2008/CS6451-Advanced-software-design>; [`version-control visualisation`](Document/Visualisations%20that%20show%20use%20of%20version%20control.png); [`tag versions`](Document/tag%20versions.png) | Complete |
 | 9 Added value | Additional design or implementation value | Sections 5.4–5.10, 9, and 20; [`9.1 CI/CD`](Document/9.1%20CICD.docx) | Complete |
 | 10 Recovered architecture | Design-time package, component, and deployment blueprints | [`package diagram`](UML/package_diagram.svg), [`component diagram`](UML/component_diagram.svg), [`deployment diagram`](UML/deployment_diagram.svg) | Complete |
 | 11 Critique | Maximum one-page critique of design and implementation quality | [`Critique`](Document/One%20page%20%28maximum%29%20critique%20on%20the%20quality%20of%20the%20design%20and%20implementation%20with%20a%20paragraph%20on%20the%20utility%20of%20diagrams%2C%20the%20eff.docx); Section 22 | Added |
@@ -1336,6 +1336,15 @@ has been implemented.
 For final export, the report should retain sections 1–25 in order and include the linked
 SVG diagrams as figures or an appendix. The assignment page limits apply to the named
 subsections, not to the evidence appendix.
+
+### 8.5 Version-control evidence
+
+The following images document the project's use of Git and GitHub for source history,
+collaboration, traceability, and tagged versions:
+
+![Visualisation showing use of version control](Document/Visualisations%20that%20show%20use%20of%20version%20control.png)
+
+![Tagged versions](Document/tag%20versions.png)
 
 ---
 
