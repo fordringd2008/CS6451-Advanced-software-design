@@ -292,6 +292,122 @@ PointsAdjustmentConsumer
   the queue contract, allowing retry on processing conflicts and keeping the caller
   independent from the work.
 
+### Architectural pattern code evidence
+
+The three architectural patterns above are evidenced by the following source excerpts.
+
+**MVC + REST — the controller is a thin transport layer that delegates to the service**
+(`GuestPointsController.java`):
+
+```java
+@RestController
+@RequestMapping("/api/guest")
+@Validated
+public class GuestPointsController {
+
+    private final GuestPointsService guestPointsService;
+
+    public GuestPointsController(GuestPointsService guestPointsService) {
+        this.guestPointsService = guestPointsService;
+    }
+
+    /** IDOR defense: the uid in the request must match the session identity. */
+    private void checkOwnership(String requestUid) {
+        String sessionUid = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        if (!requestUid.equals(sessionUid)) {
+            throw new AccessDeniedException("Not your resource");
+        }
+    }
+
+    @PostMapping("/redemptions")
+    public Result<String> redeem(@Valid @RequestBody RedemptionRequest request) {
+        checkOwnership(request.getUid());
+        return Result.success(guestPointsService.redeem(request));
+    }
+}
+```
+
+**Layered architecture — the service orchestrates business rules and delegates persistence
+to mappers** (`GuestPointsServiceImpl.java`, `redeem` excerpt):
+
+```java
+@Service
+public class GuestPointsServiceImpl implements GuestPointsService {
+
+    private final UserMapper userMapper;
+    private final ProductMapper productMapper;
+    private final PaymentStrategyFactory paymentStrategyFactory;
+    // ... further mapper and gateway dependencies
+
+    @Transactional
+    @Override
+    public String redeem(RedemptionRequest request) {
+        UserDO user = findUser(request.getUid());                 // mapper call
+        ProductDO product = findProduct(request.getPid());        // mapper call
+        PaymentTypeEnum paymentType = PaymentTypeEnum.fromPmid(request.getPmid());
+        PaymentStrategy strategy =
+                paymentStrategyFactory.getStrategy(paymentType);  // strategy call
+        PaymentRequest paymentRequest = new PaymentRequest(request.getUid(),
+                request.getPid(), request.getPmid(), request.getPointsUsed(),
+                request.getCashUsed(), request.getVoucherUsed(),
+                product.getTotalPointsRequired(), product.getMinPointsRequired(),
+                user.getCurrentPoint());
+        PaymentResult validation = strategy.validate(paymentRequest);
+        if (!validation.isSuccess()) {
+            throw new IllegalArgumentException(validation.getMessage());
+        }
+        // ... order insert, CAS point deduction, gateway settlement
+    }
+}
+```
+
+**Event-driven architecture — the producer enqueues and returns; the consumer processes later**
+(`PointsAdjustmentProducer.java` and `PointsAdjustmentConsumer.java`):
+
+```java
+@Component
+public class PointsAdjustmentProducer {
+
+    public static final String QUEUE = "queue.points.adjustment";
+
+    private final JmsTemplate jmsTemplate;
+
+    public void send(String uid, Integer pointsChange, String type, String relatedOrderId) {
+        PointsAdjustmentMessage message =
+                new PointsAdjustmentMessage(uid, pointsChange, type, relatedOrderId);
+        jmsTemplate.convertAndSend(QUEUE, message);   // enqueue and return right away
+    }
+}
+
+@Component
+public class PointsAdjustmentConsumer {
+
+    private final UserMapper userMapper;
+    private final PointsTransactionMapper transactionMapper;
+
+    @JmsListener(destination = PointsAdjustmentProducer.QUEUE)
+    public void onMessage(PointsAdjustmentMessage message) {
+        UserDO user = userMapper.selectByUid(message.getUid());
+        int newPoint = user.getCurrentPoint() + message.getPointsChange();
+        if (newPoint < 0) {
+            throw new IllegalStateException("points would go negative");
+        }
+        // Optimistic-lock update; conflict forces redelivery for automatic retry
+        int updated = userMapper.compareAndUpdatePoint(
+                message.getUid(), user.getCurrentPoint(), newPoint, LocalDateTime.now());
+        if (updated == 0) {
+            throw new IllegalStateException("optimistic lock conflict");
+        }
+        PointsTransactionDO txn = new PointsTransactionDO();
+        txn.setUid(message.getUid());
+        txn.setPointsChange(message.getPointsChange());
+        txn.setType(message.getType());               // "EARN" or "REDEEM"
+        transactionMapper.insert(txn);                // signed points transaction
+    }
+}
+```
+
 ### Technology deployment pipeline
 
 The system is intentionally **monolithic**: one Spring Boot application is built and
@@ -367,6 +483,42 @@ This keeps HTTP concerns separate from business validation and database access.
 The class relationship and concrete implementations are shown above. This is not a Chain of Responsibility:
 there is no sequential handler chain, fallback handler, or `next` reference.
 
+```java
+// PaymentStrategy.java — one rule set per payment type (no if-else block in the service):
+public interface PaymentStrategy {
+    PaymentTypeEnum getSupportedType();
+    PaymentResult validate(PaymentRequest request);
+}
+
+// PointsOnlyStrategy.java — Type 1: pure points payment,
+// points must cover the full price:
+@Component
+public class PointsOnlyStrategy implements PaymentStrategy {
+
+    @Override
+    public PaymentTypeEnum getSupportedType() {
+        return PaymentTypeEnum.POINTS_ONLY;
+    }
+
+    @Override
+    public PaymentResult validate(PaymentRequest request) {
+        if (request.getCashUsed() != null || request.getVoucherUsed() != null) {
+            return PaymentResult.fail("points-only payment must not include cash or voucher");
+        }
+        if (request.getPointsUsed() == null
+                || !request.getPointsUsed().equals(request.getProductTotalPoints())) {
+            return PaymentResult.fail("points must equal the full product price");
+        }
+        if (request.getPointsUsed() > request.getUserCurrentPoint()) {
+            return PaymentResult.fail("insufficient points");
+        }
+        return PaymentResult.ok();
+    }
+}
+```
+
+Adding a new payment type means adding a new class and one enum value in `PaymentTypeEnum` — the service and the other strategies do not change (Open/Closed Principle).
+
 ![Payment strategy UML diagram](UML/payment_strategy_uml.svg)
 
 ### 5.3 State pattern for orders
@@ -381,6 +533,51 @@ The `order` package contains:
 - `OrderContext`
 
 The current guest redemption service uses `OrderContext` to validate the pay transition, then persists the new status with a compare-and-update. The state classes provide the model for order lifecycle behavior and can be expanded as cancellation and fulfilment workflows are added.
+
+```java
+// OrderContext.java — rebuild the state machine from a persisted status code:
+public static OrderContext fromDbStatus(String oid, Integer statusDb) {
+    OrderStatusEnum status = OrderStatusEnum.fromCode(statusDb);
+    if (status == null) {
+        throw new IllegalArgumentException("unknown order status code: " + statusDb);
+    }
+    switch (status) {
+        case PENDING_PAYMENT: return new OrderContext(oid, PendingPaymentState.INSTANCE);
+        case PAID:            return new OrderContext(oid, PaidState.INSTANCE);
+        case COMPLETED:       return new OrderContext(oid, CompletedState.INSTANCE);
+        case CANCELLED:       return new OrderContext(oid, CancelledState.INSTANCE);
+        default: throw new IllegalArgumentException("unknown order status code: " + statusDb);
+    }
+}
+
+// PendingPaymentState.java — initial state; pay() moves to Paid,
+// illegal transitions throw:
+public class PendingPaymentState implements OrderState {
+
+    public static final PendingPaymentState INSTANCE = new PendingPaymentState();
+
+    @Override
+    public void pay(OrderContext context) {
+        context.setState(PaidState.INSTANCE);          // legal transition
+    }
+
+    @Override
+    public void complete(OrderContext context) {
+        throw new IllegalStateException("cannot complete an unpaid order");
+    }
+}
+```
+
+The service then persists the transition with a conditional update
+(`GuestPointsServiceImpl.java`):
+
+```java
+OrderContext orderCtx = OrderContext.fromDbStatus(oid, order.getStatus());
+orderCtx.pay();   // in-memory rule check — first line of defense
+orderMapper.compareAndUpdateStatus(oid,
+        OrderStatusEnum.PENDING_PAYMENT.getCode(),
+        orderCtx.getCurrentState().getStatus().getCode(), now);
+```
 
 ![Order state diagram](UML/order_state_diagram_1.0.svg)
 
@@ -417,6 +614,41 @@ Returning `false` stops the chain. This is separate from Spring Security's frame
 `SecurityFilterChain`; the project-owned chain handles application-specific status, portal,
 logging, and redirect decisions.
 
+```java
+// LoginPostHandler.java — fluent API so the chain can be assembled in one line:
+public LoginPostHandler linkWith(LoginPostHandler next) {
+    this.next = next;
+    return next;
+}
+
+// LoginSuccessHandler.java — assembles the chain: Status -> Portal -> Log -> Redirect.
+// Order matters: reject checks (status, portal) come first (fail fast).
+private LoginPostHandler buildChain() {
+    StatusCheckHandler head = new StatusCheckHandler();
+    head.linkWith(new PortalMatchHandler())
+        .linkWith(new LoginLogHandler())
+        .linkWith(new RedirectHandler());
+    return head;
+}
+
+// StatusCheckHandler.java — each concrete handler implements ONE check;
+// returning false stops the chain.
+public class StatusCheckHandler extends LoginPostHandler {
+    @Override
+    protected boolean doHandle(LoginContext ctx) {
+        if (ctx.getStatus() != 0) {           // only NORMAL (0) may log in
+            ctx.setErrorMessage("Account is not active");
+            return false;                     // chain stops here
+        }
+        return true;
+    }
+}
+```
+
+Note that this is a validation chain: every handler must pass, so the chain stops at the
+first failure. The reject checks (status, portal) come first, so the team only logs and
+redirects users who passed the business rules.
+
 ![Login Chain of Responsibility and Template Method](UML/login_chain_template.svg)
 
 ### 5.7 Template Method in login handlers
@@ -425,6 +657,24 @@ logging, and redirect decisions.
 (run the current handler, then call the successor when the check passes), while concrete
 handlers implement the variable `doHandle()` step. This keeps chain traversal consistent and
 limits each handler to one business rule.
+
+```java
+// LoginPostHandler.java — template method; final, so subclasses cannot override the flow:
+public final boolean handle(LoginContext ctx) {
+    boolean pass = doHandle(ctx);          // the one varying step
+    if (pass && next != null) {
+        return next.handle(ctx);           // "pass to next" is locked in the base class
+    }
+    return pass;
+}
+
+/** Each concrete handler implements its single check here. */
+protected abstract boolean doHandle(LoginContext ctx);
+```
+
+Even though there is only one varying step, the `final` method matters: it locks the
+"pass to next" flow, so no handler can bypass it or forget to call the next handler.
+The chain logic stays in one place, and all four handlers stay simple.
 
 ### 5.8 Observer / publish-subscribe event handling
 
@@ -437,6 +687,34 @@ atomicity is preserved while reward logic stays decoupled from the point-deducti
 Additional listeners, such as notification or voucher issuance, can subscribe to the same
 event without changing the existing redemption code.
 
+```java
+// GuestPointsServiceImpl.java — inside the @Transactional redeem method,
+// after points are deducted:
+eventPublisher.publishEvent(
+        new PointsDeductedEvent(oid, request.getUid(), request.getPid(), request.getPointsUsed()));
+
+// RewardDistributionListener.java — runs synchronously inside the
+// publisher's transaction:
+@Component
+public class RewardDistributionListener {
+
+    private final ProductMapper productMapper;
+
+    @EventListener
+    public void onPointsDeducted(PointsDeductedEvent event) {
+        // Conditional UPDATE is the concurrency guard; zero affected rows
+        // means the product sold out concurrently, so fail the transaction.
+        if (productMapper.deductStock(event.getPid(), 1, LocalDateTime.now()) != 1) {
+            throw new IllegalStateException(
+                    "product is no longer in stock: " + event.getPid());
+        }
+    }
+}
+```
+
+The publisher does not know about the listener — new subscribers plug in without touching
+the redemption service.
+
 ![Observer and event publication diagram](UML/observer_event.svg)
 
 ### 5.9 Factory and Data Mapper patterns
@@ -445,6 +723,59 @@ event without changing the existing redemption code.
 `PaymentTypeEnum`. The MyBatis mapper interfaces (`UserMapper`, `ProductMapper`,
 `OrderMapper`, and others) implement the Data Mapper pattern: persistence operations are
 kept outside the domain objects and services.
+
+```java
+// PaymentStrategyFactory.java — Spring injects every strategy bean;
+// the factory indexes them by type:
+@Component
+public class PaymentStrategyFactory {
+
+    private final Map<PaymentTypeEnum, PaymentStrategy> strategyMap =
+            new EnumMap<>(PaymentTypeEnum.class);
+
+    /** Spring injects every strategy bean; the factory indexes them by type. */
+    public PaymentStrategyFactory(List<PaymentStrategy> strategies) {
+        for (PaymentStrategy strategy : strategies) {
+            strategyMap.put(strategy.getSupportedType(), strategy);
+        }
+    }
+
+    /** Adding a new payment type = add one bean, nothing else changes here. */
+    public PaymentStrategy getStrategy(PaymentTypeEnum type) {
+        PaymentStrategy strategy = strategyMap.get(type);
+        if (strategy == null) {
+            throw new IllegalArgumentException(
+                    "no payment strategy registered for type: " + type);
+        }
+        return strategy;
+    }
+}
+```
+
+The Data Mapper side is plain MyBatis: mapper interfaces such as `UserMapper` hold the SQL
+annotations while domain objects (`UserDO`, `ProductDO`) carry only data — persistence stays
+outside the domain objects.
+
+```java
+// UserMapper.java — Data Mapper: SQL lives in the mapper interface,
+// domain objects carry only data:
+@Mapper
+public interface UserMapper {
+    // Note: no SELECT * (Alibaba rule), all parameters use #{} (never ${}).
+    @Select("SELECT id, uid, name, password, status, role, register_time, "
+          + "level, current_point, gmt_create, gmt_modified "
+          + "FROM \"user\" WHERE uid = #{uid}")
+    UserDO selectByUid(@Param("uid") String uid);
+
+    /** Optimistic-lock point update — conditional UPDATE is the concurrency guard. */
+    @Update("UPDATE \"user\" SET current_point = #{newPoint}, gmt_modified = #{gmtModified} "
+          + "WHERE uid = #{uid} AND current_point = #{expectedOldPoint}")
+    int compareAndUpdatePoint(@Param("uid") String uid,
+                              @Param("expectedOldPoint") Integer expectedOldPoint,
+                              @Param("newPoint") Integer newPoint,
+                              @Param("gmtModified") LocalDateTime gmtModified);
+}
+```
 
 ![Factory and Data Mapper diagram](UML/factory_data_mapper.svg)
 
@@ -455,6 +786,42 @@ controllers handle requests, services provide application behavior, and JSP page
 `Result` objects provide the view/response. Constructor injection is used throughout the
 controllers, services, producers, consumers, and listeners, making dependencies explicit
 and testable.
+
+```java
+// GuestPointsServiceImpl.java — all eight dependencies are constructor-injected;
+// no field injection anywhere in the project:
+@Service
+public class GuestPointsServiceImpl implements GuestPointsService {
+
+    private final UserMapper userMapper;
+    private final ProductMapper productMapper;
+    private final PaymentMethodMapper paymentMethodMapper;
+    private final OrderMapper orderMapper;
+    private final PointsTransactionMapper pointsTransactionMapper;
+    private final PaymentStrategyFactory paymentStrategyFactory;
+    private final PaymentGateway paymentGateway;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public GuestPointsServiceImpl(UserMapper userMapper, ProductMapper productMapper,
+                                   PaymentMethodMapper paymentMethodMapper, OrderMapper orderMapper,
+                                   PointsTransactionMapper pointsTransactionMapper,
+                                   PaymentStrategyFactory paymentStrategyFactory,
+                                   PaymentGateway paymentGateway,
+                                   ApplicationEventPublisher eventPublisher) {
+        this.userMapper = userMapper;
+        this.productMapper = productMapper;
+        this.paymentMethodMapper = paymentMethodMapper;
+        this.orderMapper = orderMapper;
+        this.pointsTransactionMapper = pointsTransactionMapper;
+        this.paymentStrategyFactory = paymentStrategyFactory;
+        this.paymentGateway = paymentGateway;
+        this.eventPublisher = eventPublisher;
+    }
+}
+```
+
+Explicit constructor injection makes the dependency surface visible in the class signature
+and lets unit tests supply mocks directly, as in `GuestPointsServiceImplTest`.
 
 ![MVC and dependency injection diagram](UML/mvc_dependency_injection.svg)
 
@@ -954,8 +1321,8 @@ has been implemented.
 | 4.3 GUI prototypes | Two GUI prototypes and explanation of user flow | [`GUI prototypes`](GUI/); actual running screenshots in Section 10 | Complete |
 | 5.0 Architecture | Maximum two-page architecture discussion, two architectural patterns, and a high-level package view | [`Architecture discussion`](Document/5.0%20A%20two-page%20%28maximum%29%20discussion%20of%20system%20architecture%20to%20include%20two%20architectural%20patterns%20and%20%20high-level%20pack.docx); Sections 4 and 5; [`package diagram`](UML/package_diagram.svg) | Complete |
 | 6.1–6.5 Design sketches | Candidate objects, class, sequence/communication, state, and ER diagrams | [`Candidate objects`](Document/candidate_objects_1.0.xlsx); [`UML assets`](UML/); Section 13 | Complete |
-| 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | [`7.1 package counts`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2 class authorship and LOC`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3 team LOC`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx); Section 21 | Complete for the archived commit |
-| 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | [`8.1 MVC and architectural patterns`](Document/8.1%20Model-View-Controller%20%28MVC%29%20REST%20Architectural%20Pattern%2C%20and%20the%20Other%20Architectural%20Patterns%20Implemented.docx), [`four design patterns`](Document/Four%20Design%20Patterns%20Implemented.docx), [`8.4 automated testing`](Document/8.4%20Automated%20testing%20using%20JunitNunitother.docx), Sections 5, 8, and 12; `src/main/java`; `src/test/java` | Complete |
+| 7.1–7.4 Transparency | Package/class counts, authorship and LOC, team contribution, patterns/testing/CI-CD ownership | [`7.1 package counts`](Document/7.1%20A%20table%20listing%20the%20packages%2C%20%23%20classes%20per%20package%2C%20and%20the%20total%20packages%20and%20classes..xlsx), [`7.2 class authorship and LOC`](Document/7.2%20A%20table%20listing%20the%20classes%20in%20each%20package%2C%20their%20authors%2C%20and%20lines%20of%20code..xlsx), [`7.3 team LOC`](Document/7.3%20A%20table%20listing%20total%20lines%20of%20code%20implemented%20by%20each%20team%20member.xlsx); Section 21 (includes 7.4 planned-versus-actual table) | Complete |
+| 8.1–8.4 Code evidence | MVC/REST, four patterns, key use cases, and automated testing snippets | [`8.1 MVC and architectural patterns`](Document/8.1%20Model-View-Controller%20%28MVC%29%20REST%20Architectural%20Pattern%2C%20and%20the%20Other%20Architectural%20Patterns%20Implemented.docx), [`four design patterns`](Document/Four%20Design%20Patterns%20Implemented.docx), [`8.4 automated testing`](Document/8.4%20Automated%20testing%20using%20JunitNunitother.docx), Sections 4 and 5 (code snippets included), Sections 8 and 12; `src/main/java`; `src/test/java` | Complete |
 | 8.5 Version control | Visual evidence of version-control use | Git repository: <https://github.com/fordringd2008/CS6451-Advanced-software-design> | Complete; add screenshot if required by marking rubric |
 | 9 Added value | Additional design or implementation value | Sections 5.4–5.10, 9, and 20; [`9.1 CI/CD`](Document/9.1%20CICD.docx) | Complete |
 | 10 Recovered architecture | Design-time package, component, and deployment blueprints | [`package diagram`](UML/package_diagram.svg), [`component diagram`](UML/component_diagram.svg), [`deployment diagram`](UML/deployment_diagram.svg) | Complete |
@@ -1044,6 +1411,24 @@ official information can be added without inventing credentials:
 ![Final project plan](Plan/Final%20Plan.png)
 
 This image is the final project-plan snapshot and complements the underlying workbook.
+
+### Project diary (Week 4–12)
+
+The diary records the weekly contribution, problems encountered, and next-week plan.
+Weeks 4–9 are reconstructed from the Git commit history and the team discussion log;
+Weeks 10–12 are the remaining plan at the time of writing.
+
+| Week | Dates | Contribution | Problems encountered | Next week plan |
+|---|---|---|---|---|
+| 4 | 28 Sep – 4 Oct | Discussed the business scenario; identified UC1–UC6; designed domain-object fields (User, PointsTransaction, Product, PointsRule, PaymentMethod); created project plan v1.0; initialized the Git repository | Use-case boundaries were ambiguous; the "threshold" in the points rule was understood differently by the two members | Freeze the use cases; draw the use-case diagram |
+| 5 | 5 – 11 Oct | Wrote the use-case catalogue and use-case diagram v1.0/v1.1; detailed the two key use cases (UC3, UC6); added the discussion log | Use-case description granularity was inconsistent between members | Build GUI prototypes aligned to the use cases |
+| 6 | 12 – 18 Oct | Created four GUI prototype pages (admin, confirm-payment, my-points, points-mall); released GUI v1.1 with a changelog; added `.gitignore` | Prototypes contained UI elements not backed by any use case; several refinement rounds were needed | Architecture design and Spring Boot scaffolding |
+| 7 | 19 – 25 Oct | Added the Spring Boot project (JDK 21, Artemis embedded); implemented the core (layered code, state machine, payment strategy, JMS, Swagger UI, JSP demo); login security with Chain of Responsibility; class diagram 1.0; full test suite — 98 tests | Login page returned HTTP 500; successful login did not redirect to the account page; logout link used GET but Spring Security requires POST; favicon.ico NoResourceFoundException | Add payment simulation, CI/CD, and UML evidence |
+| 8 | 26 Oct – 1 Nov | Mixed payment support (points+cash, points+voucher); activated `PointsDeductedEvent` with the stock-deducting listener; CI/CD workflows; architecture and design-pattern UML diagrams; demo PDF; reflection drafts and reference list | Third payment type redemption did not update correctly; product image URL field was too short (fixed to 2048 chars) | Archive deliverables and sync documentation |
+| 9 | 2 – 8 Nov | Archived assignment deliverables (docx/xlsx); synced the test and docs with the event-driven design; added the final plan and real GUI screenshots | Test and documentation had drifted from the event-driven design change | Final review and PDF export |
+| 10 | 9 – 15 Nov | *(planned)* Final consistency review; export README to PDF with SVG figures rendered | — | Prepare the submission package |
+| 11 | 16 – 22 Nov | *(planned)* Verify page limits, transparency tables, and the submission checklist | — | Submit |
+| 12 | 23 – 29 Nov | *(planned)* Submission window | — | — |
 
 ---
 
@@ -1207,6 +1592,36 @@ than regenerated from the current working tree.
 | wukewei | 82 | 3,966 | 84.4369% |
 | Fordring | 7 | 731 | 15.5631% |
 | **Total** | **89** | **4,697** | **100%** |
+
+### 7.4 Planned versus actual division of work
+
+Franklin is the git author "wukewei" in tables 7.2 and 7.3. The table below maps each
+deliverable area to its planned owner (Section 19) and the actual contribution evidenced
+in the repository.
+
+| Deliverable area | Planned owner | Actual contribution | Evidence |
+|---|---|---|---|
+| Business scenario and use cases | Fordring | Scenario narrative; UC1–UC6 catalogue; two key use-case descriptions (UC3, UC6) | Section 1; Section 3; UseCases/ |
+| Lifecycle and architecture documents | Franklin | 3.2 lifecycle discussion; 5.0 architecture discussion | Document/ |
+| GUI prototypes | Franklin | Four prototype pages v1.1 (admin, points-mall, my-points, confirm-payment) with changelog | GUI/ |
+| Design sketches (candidate objects, class, state, ER) | Fordring | Candidate-object workbook; class, state, and ER sketches | Document/candidate_objects_1.0.xlsx; UML/ |
+| Architecture and design-pattern UML | Franklin | Layered, package, component, deployment, strategy, factory, chain, observer, and message-driven SVG diagrams | UML/ |
+| Project scaffolding and boilerplate | Franklin | domain, dto, vo, enums, mapper, and config classes — one set per database table | Section 7.2 |
+| Core business logic | Fordring | `GuestPointsServiceImpl` (329 LOC, largest single class), `GuestPointsController`, `GuestJspController`, `PaymentAmountCalculator`, `RedemptionRequest` | Section 7.2 |
+| Security (Chain of Responsibility login) | Franklin | `security` package, 11 classes, login validation chain | Section 5.6; Section 7.2 |
+| Automated tests and CI/CD | Franklin | Test suite (103 tests); `ci.yml` and `release.yml` workflows | Section 12; .github/workflows/ |
+| Transparency workbooks and code-snippet documents | Franklin | 7.1–7.3 workbooks; 8.1/8.2/8.4 code-snippet documents; 9.1 CI/CD document | Document/ |
+| Reflection and final report | Both | Individual reflections; joint final consistency review | Section 23 |
+
+The LOC distribution in 7.3 (84.4% versus 15.6%) reflects the code-internal division of
+labor, not unequal contribution. One member owned the project scaffolding — domain, DTO,
+VO, enum, and mapper classes, one set per database table, which naturally produces a high
+class and LOC count — together with the security chain, the automated tests, and the
+CI/CD pipeline. The other member owned the core business logic, including the largest
+single class in the project, and was responsible for requirements analysis, UML design
+sketches, and the final report. Requirements, UML, documentation, and review are real
+project work but are not counted in the LOC statistic. Both members contributed
+substantially; LOC share is not a measure of contribution share.
 
 The endpoint-to-use-case mapping remains in Section 8, and the test-to-behavior summary
 is in Section 12. These archived counts should not be presented as a fresh count if the
