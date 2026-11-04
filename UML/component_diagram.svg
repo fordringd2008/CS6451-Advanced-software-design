@@ -102,7 +102,7 @@
   <path class="edge" d="M910 210 L1000 210"/>
   <path class="edge" d="M785 275 L785 390"/>
   <path class="edge" d="M910 450 L1000 450"/>
-  <path class="edge" d="M1122 275 L1122 620"/>
+  <path class="edge" d="M1122 275 L1122 390"/>
   <path class="async" d="M910 235 C945 300 1010 330 1080 390"/>
   <path class="async" d="M1122 515 C1080 570 930 580 905 620"/>
   <text x="936" y="320" class="label">publish adjustment</text>

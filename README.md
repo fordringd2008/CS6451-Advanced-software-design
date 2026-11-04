@@ -9,7 +9,7 @@
 **Version:** `0.0.1-SNAPSHOT`  
 **Java:** 21  
 **Build:** Maven  
-**Last reviewed:** 27 October 2026
+**Last reviewed:** 4 November 2026
 
 ---
 
@@ -1190,6 +1190,8 @@ The repository contains these supporting artifacts:
 | Order state diagram | [`order_state_diagram_1.0.svg`](UML/order_state_diagram_1.0.svg) |
 | Entry relationship diagram | [`entry_relationship_diagram.svg`](UML/entry_relationship_diagram.svg) |
 | Layered package architecture | [`layered_architecture.svg`](UML/layered_architecture.svg) |
+| Runtime component architecture | [`component_diagram.svg`](UML/component_diagram.svg) |
+| Single-host deployment topology | [`deployment_diagram.svg`](UML/deployment_diagram.svg) |
 | Payment strategy UML | [`payment_strategy_uml.svg`](UML/payment_strategy_uml.svg) |
 | Message-driven points adjustment | [`message_driven_points_adjustment.svg`](UML/message_driven_points_adjustment.svg) |
 | Optimistic concurrency control | [`optimistic_concurrency.svg`](UML/optimistic_concurrency.svg) |
