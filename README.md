@@ -1344,7 +1344,7 @@ collaboration, traceability, and tagged versions:
 
 ![Visualisation showing use of version control](Document/Visualisations%20that%20show%20use%20of%20version%20control.png)
 
-![Tagged versions](Document/tag%20versions.png)
+![Tagged versions](Document/Tag%20versions.png)
 
 ---
 
